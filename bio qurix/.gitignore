@@ -4,7 +4,7 @@ Thumbs.db
 node_modules/
 
 # local extraction/work dirs
-app/
+# app/
 
 # archives
 *.zip
