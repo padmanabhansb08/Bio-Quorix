@@ -1,0 +1,966 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description"
+    content="BioQuorix — AI-powered personalized learning assistant for biotechnology students. Adaptive content, smart quizzes, and real-time progress tracking.">
+  <title>BioQuorix — AI Learning Assistant for Biotechnology</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+</head>
+
+<body>
+
+  <!-- ========== NAVBAR ========== -->
+  <nav class="navbar" id="navbar">
+    <div class="container">
+      <a href="#" class="navbar-brand" onclick="navigateTo('landing')" style="display:flex; align-items:center;">
+        <svg width="34" height="34" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg"
+          style="margin-right: 12px; filter: drop-shadow(0px 2px 3px rgba(0,0,0,0.15));">
+          <defs>
+            <linearGradient id="bq-green" x1="0" y1="0" x2="0" y2="100" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#0E6B40" />
+              <stop offset="100%" stop-color="#148F56" />
+            </linearGradient>
+            <linearGradient id="bq-silver" x1="0" y1="0" x2="0" y2="100" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#9EA8AE" />
+              <stop offset="100%" stop-color="#C5CDD1" />
+            </linearGradient>
+          </defs>
+          <path d="M 20 20 V 55 C 20 80 40 92 50 95" stroke="url(#bq-green)" stroke-width="12" stroke-linecap="round"
+            stroke-linejoin="round" />
+          <path d="M 80 20 L 30 65" stroke="url(#bq-silver)" stroke-width="12" stroke-linecap="round" />
+          <path d="M 20 20 L 70 65" stroke="url(#bq-green)" stroke-width="12" stroke-linecap="round" />
+          <path d="M 80 20 V 55 C 80 80 60 92 50 95" stroke="url(#bq-silver)" stroke-width="12" stroke-linecap="round"
+            stroke-linejoin="round" />
+          <path d="M 35 75 C 40 82 45 88 50 95 C 45 95 40 92 35 85 Z" fill="url(#bq-green)" />
+          <path d="M 33 55 Q 48 60 48 83 Q 32 75 33 55 Z" fill="url(#bq-green)" />
+        </svg>
+        <span
+          style="font-family: 'Playfair Display', Georgia, serif; font-weight: 700; letter-spacing: -0.5px; font-size: 1.4rem;">BioQuorix</span>
+      </a>
+      <ul class="navbar-links" id="navLinks">
+        <!-- Dynamic based on auth state -->
+      </ul>
+      <div class="model-pill" id="modelPill" title="Ollama model (click to change)">
+        <label for="ollamaModelSelect" class="sr-only">Ollama model</label>
+        <select id="ollamaModelSelect" class="form-input" onchange="setOllamaModel(this.value)">
+          <option value="gemma2:9b">Gemma 2 (9B)</option>
+          <option value="gemma4">Gemma 4</option>
+          <option value="llama3">Llama 3</option>
+          <option value="mistral">Mistral</option>
+        </select>
+      </div>
+      <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" aria-label="Toggle Theme">
+        <!-- Sun Icon -->
+        <svg class="sun-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="5" />
+          <line x1="12" y1="1" x2="12" y2="3" />
+          <line x1="12" y1="21" x2="12" y2="23" />
+          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+          <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+          <line x1="1" y1="12" x2="3" y2="12" />
+          <line x1="21" y1="12" x2="23" y2="12" />
+          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+          <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+        </svg>
+        <!-- Moon Icon -->
+        <svg class="moon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+        </svg>
+      </button>
+    </div>
+  </nav>
+
+  <!-- ========== LANDING PAGE ========== -->
+  <div id="page-landing" class="page">
+    <!-- SVG Molecule Background -->
+    <svg class="bg-molecule" width="800" height="800" viewBox="0 0 100 100" fill="none" stroke="var(--primary-500)">
+      <circle cx="50" cy="50" r="10" stroke-width="0.5" fill="rgba(16, 185, 129, 0.05)" />
+      <circle cx="20" cy="30" r="6" stroke-width="0.5" fill="rgba(16, 185, 129, 0.05)" />
+      <circle cx="80" cy="70" r="8" stroke-width="0.5" fill="rgba(16, 185, 129, 0.05)" />
+      <circle cx="70" cy="20" r="5" stroke-width="0.5" fill="rgba(16, 185, 129, 0.05)" />
+      <circle cx="30" cy="80" r="7" stroke-width="0.5" fill="rgba(16, 185, 129, 0.05)" />
+      <line x1="50" y1="50" x2="20" y2="30" stroke-width="0.5" opacity="0.3" />
+      <line x1="50" y1="50" x2="80" y2="70" stroke-width="0.5" opacity="0.3" />
+      <line x1="50" y1="50" x2="70" y2="20" stroke-width="0.5" opacity="0.3" />
+      <line x1="50" y1="50" x2="30" y2="80" stroke-width="0.5" opacity="0.3" />
+    </svg>
+
+    <section class="hero scroll-reveal"
+      style="min-height: 90vh; display: flex; align-items: center; position: relative; z-index: 10;">
+      <div class="container flex items-center justify-center" style="gap: 64px; flex-wrap: wrap;">
+        <div class="hero-content text-center" style="max-width: 800px; margin: 0 auto;">
+          <div class="hero-badge scroll-reveal delay-1"
+            style="display:inline-flex; align-items:center; gap:8px; padding:6px 16px; border-radius:100px; background:rgba(16, 185, 129, 0.1); border:1px solid rgba(16, 185, 129, 0.3); color:var(--primary-400); font-size:0.85rem; font-weight:600; font-family:'JetBrains Mono', monospace; margin-bottom:24px;">
+            <span
+              style="display:block; width:8px; height:8px; background:var(--primary-400); border-radius:50%; box-shadow:0 0 10px var(--primary-400);"></span>
+            Research-Grade AI Learning System
+          </div>
+          <h1 class="scroll-reveal delay-2"
+            style="font-size: clamp(2.5rem, 5vw, 4.5rem); letter-spacing:-0.03em; margin-bottom:24px;">
+            Master Biotechnology with an
+            <span class="text-gradient">AI Mentor</span>
+          </h1>
+          <p class="scroll-reveal delay-3"
+            style="font-size: 1.15rem; color: var(--text-secondary); max-width: 600px; margin: 0 auto 40px; line-height: 1.6;">
+            Adaptive curriculum, spatial repetition, and real-time mastery analytics — architected for university-level
+            deployment and serious students.
+          </p>
+          <div class="hero-actions scroll-reveal delay-4" style="justify-content: center;">
+            <button class="btn btn-primary btn-lg hover-elevate ripple-btn" onclick="navigateTo('signup')"
+              style="font-size:1.1rem; padding:16px 32px;">Deploy Demo →</button>
+            <button class="btn btn-secondary btn-lg hover-elevate"
+              onclick="document.getElementById('features-section').scrollIntoView({behavior:'smooth'})"
+              style="font-size:1.1rem; padding:16px 32px; background:rgba(255,255,255,0.03);">Read Whitepaper</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Features -->
+    <section class="features scroll-reveal" id="features-section" style="position:relative; z-index:10;">
+      <div class="container">
+        <div class="section-header scroll-reveal delay-1">
+          <span class="overline">Core Architecture</span>
+          <h2>Everything You Need to <span class="text-gradient">Excel</span></h2>
+          <p>Four powerful AI-driven modules working together to create your perfect learning experience.</p>
+        </div>
+        <div class="features-grid stagger-children">
+          <div class="glass-card feature-card scroll-reveal delay-1 hover-elevate">
+            <div class="feature-icon green">📖</div>
+            <h4>Adaptive Curriculum</h4>
+            <p>AI generates lessons tailored to your level — from cell biology basics to advanced genomics. Content
+              adapts as you learn.</p>
+          </div>
+          <div class="glass-card feature-card scroll-reveal delay-2 hover-elevate">
+            <div class="feature-icon purple">🧠</div>
+            <h4>Spatial Repetition</h4>
+            <p>Built-in SM-2 algorithm flashcards optimize your memory retention schedule automatically.</p>
+          </div>
+          <div class="glass-card feature-card scroll-reveal delay-3 hover-elevate">
+            <div class="feature-icon teal">🗺️</div>
+            <h4>Personalized Path</h4>
+            <p>AI maps your optimal study route by analyzing strengths, weaknesses, and learning patterns.</p>
+          </div>
+          <div class="glass-card feature-card scroll-reveal delay-4 hover-elevate">
+            <div class="feature-icon amber">📊</div>
+            <h4>Mastery Analytics</h4>
+            <p>Real-time statistical breakdown of your progress, ranking, and improvement velocity.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- How It Works -->
+    <section class="scroll-reveal"
+      style="padding: 120px 0; background: rgba(0,0,0,0.2); border-top: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color); margin-top: 64px;">
+      <div class="container">
+        <div class="section-header scroll-reveal delay-1">
+          <span class="overline">Workflow Integration</span>
+          <h2>Three Steps to <span class="text-gradient">Mastery</span></h2>
+        </div>
+        <div class="features-grid stagger-children"
+          style="grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));">
+          <div class="glass-card scroll-reveal delay-1 hover-elevate" style="text-align:center; padding: 48px 24px;">
+            <div
+              style="width:64px; height:64px; background:var(--bg-input); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:1.5rem; font-weight:800; color:var(--text-secondary); margin:0 auto 24px; border:1px solid var(--border-color);">
+              01</div>
+            <h4>10-Question Diagnostic</h4>
+            <p style="color:var(--text-secondary); font-size:0.9rem;">The AI assesses your baseline knowledge, instantly
+              mapping your weak areas.</p>
+          </div>
+          <div class="glass-card scroll-reveal delay-2 hover-elevate"
+            style="text-align:center; padding: 48px 24px; border-color:var(--primary-500); box-shadow:0 0 30px rgba(99,102,241,0.05);">
+            <div
+              style="width:64px; height:64px; background:var(--gradient-primary); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:1.5rem; font-weight:800; color:#fff; margin:0 auto 24px; box-shadow:0 0 20px rgba(99,102,241,0.3);">
+              02</div>
+            <h4 style="color:var(--text-primary);">AI Generated Lessons</h4>
+            <p style="color:var(--text-secondary); font-size:0.9rem;">Study bespoke modules mapped strictly to your
+              knowledge gaps.</p>
+          </div>
+          <div class="glass-card scroll-reveal delay-3 hover-elevate" style="text-align:center; padding: 48px 24px;">
+            <div
+              style="width:64px; height:64px; background:var(--bg-input); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:1.5rem; font-weight:800; color:var(--text-secondary); margin:0 auto 24px; border:1px solid var(--border-color);">
+              03</div>
+            <h4>Continuous Tracking</h4>
+            <p style="color:var(--text-secondary); font-size:0.9rem;">Monitor your Live Leaderboard rank and daily SM-2
+              flashcard reviews.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Institutional Testimonials -->
+    <section id="testimonials" class="scroll-reveal" style="padding: 120px 0;">
+      <div class="container">
+        <div class="section-header scroll-reveal delay-1">
+          <span class="overline">Academic Validation</span>
+          <h2>Trusted by <span class="text-gradient">Researchers</span></h2>
+        </div>
+        <div class="features-grid">
+          <div class="glass-card scroll-reveal delay-1 hover-elevate"
+            style="border-left: 3px solid var(--primary-500);">
+            <p style="font-style:italic; margin-bottom:24px; font-size:1.05rem;">"The spatial repetition algorithms
+              integrated with LLM-generated curriculum provides an unprecedented acceleration in student mastery
+              metrics."</p>
+            <div style="display:flex; align-items:center; gap:16px;">
+              <div
+                style="width:48px; height:48px; border-radius:50%; background:var(--bg-input); display:flex; align-items:center; justify-content:center; font-weight:700;">
+                DR</div>
+              <div>
+                <div style="font-weight:700;">Dr. Elena Rossi</div>
+                <div style="font-size:0.8rem; color:var(--text-muted);">Dept. of Genomics, Stanford Univ.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="glass-card scroll-reveal delay-2 hover-elevate"
+            style="border-left: 3px solid var(--secondary-500);">
+            <p style="font-style:italic; margin-bottom:24px; font-size:1.05rem;">"BioQuorix represents the future of
+              adaptive EdTech. The instant syllabus generation and continuous assessment loop is simply remarkable."</p>
+            <div style="display:flex; align-items:center; gap:16px;">
+              <div
+                style="width:48px; height:48px; border-radius:50%; background:var(--bg-input); display:flex; align-items:center; justify-content:center; font-weight:700;">
+                PK</div>
+              <div>
+                <div style="font-weight:700;">Prof. Alan Turing</div>
+                <div style="font-size:0.8rem; color:var(--text-muted);">Institute for Advanced Study</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="scroll-reveal" style="padding: 64px 0 120px;">
+      <div class="container text-center">
+        <div class="glass-card scroll-reveal delay-2 hover-elevate"
+          style="max-width:800px; margin:0 auto; padding:64px 32px; background:linear-gradient(180deg, rgba(99,102,241,0.05), transparent);">
+          <div style="font-size:3rem; margin-bottom:16px;">🚀</div>
+          <h2 style="margin-bottom:16px; font-size:2.5rem;">Initialize Your <span
+              class="text-gradient">Deployment</span></h2>
+          <p
+            style="margin-bottom:40px; font-size:1.1rem; color:var(--text-secondary); max-width:500px; margin-left:auto; margin-right:auto;">
+            Deploy a personalized biotech environment in seconds. Join the next generation of researchers.
+          </p>
+          <button class="btn btn-primary btn-lg ripple-btn hover-elevate" onclick="navigateTo('signup')"
+            style="padding: 16px 40px; font-size:1.15rem; font-weight:700; letter-spacing:1px;">
+            CREATE ACCOUNT
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <footer
+      style="border-top:1px solid var(--border-color); padding:40px 0; text-align:center; background:var(--bg-primary);">
+      <p style="font-size:0.85rem; color:var(--text-muted); font-family:'JetBrains Mono', monospace;">
+        SYS_LOG: © 2026 BioQuorix Enterprise | LLM Edge Node Active
+      </p>
+    </footer>
+  </div>
+
+  <!-- ========== LOGIN PAGE ========== -->
+  <div id="page-login" class="page hidden">
+    <div class="auth-page">
+      <div class="glass-card auth-card">
+        <a href="#" class="navbar-brand" onclick="navigateTo('landing')"
+          style="display:flex; justify-content:center; align-items:center; margin-bottom:24px;">
+          <svg width="44" height="44" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg"
+            style="margin-right: 12px; filter: drop-shadow(0px 2px 3px rgba(0,0,0,0.15));">
+            <path d="M 20 20 V 55 C 20 80 40 92 50 95" stroke="url(#bq-green)" stroke-width="12" stroke-linecap="round"
+              stroke-linejoin="round" />
+            <path d="M 80 20 L 30 65" stroke="url(#bq-silver)" stroke-width="12" stroke-linecap="round" />
+            <path d="M 20 20 L 70 65" stroke="url(#bq-green)" stroke-width="12" stroke-linecap="round" />
+            <path d="M 80 20 V 55 C 80 80 60 92 50 95" stroke="url(#bq-silver)" stroke-width="12" stroke-linecap="round"
+              stroke-linejoin="round" />
+            <path d="M 40 85 C 45 92 50 95 50 95" stroke="url(#bq-green)" stroke-width="12" stroke-linecap="round"
+              stroke-linejoin="round" />
+            <path d="M 33 55 Q 48 60 48 83 Q 32 75 33 55 Z" fill="url(#bq-green)" />
+          </svg>
+          <span
+            style="font-family: 'Playfair Display', Georgia, serif; font-weight: 700; letter-spacing: -0.5px; font-size: 1.8rem;">BioQuorix</span>
+        </a>
+        <h2>Welcome Back</h2>
+        <p class="auth-subtitle">Sign in to continue your learning journey</p>
+        <form class="auth-form" onsubmit="handleLogin(event)">
+          <div class="form-group">
+            <label class="form-label">Email</label>
+            <input type="email" class="form-input" id="loginEmail" placeholder="you@example.com" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Password</label>
+            <input type="password" class="form-input" id="loginPassword" placeholder="••••••••" required>
+          </div>
+          <button type="submit" class="btn btn-primary" style="width:100%;">Sign In</button>
+        </form>
+        <div class="auth-footer">
+          Don't have an account? <a href="#" onclick="navigateTo('signup')">Sign Up</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== SIGNUP PAGE ========== -->
+  <div id="page-signup" class="page hidden">
+    <div class="auth-page">
+      <div class="glass-card auth-card">
+        <a href="#" class="navbar-brand" onclick="navigateTo('landing')"
+          style="display:flex; justify-content:center; align-items:center; margin-bottom:24px;">
+          <svg width="44" height="44" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg"
+            style="margin-right: 12px; filter: drop-shadow(0px 2px 3px rgba(0,0,0,0.15));">
+            <path d="M 20 20 V 55 C 20 80 40 92 50 95" stroke="url(#bq-green)" stroke-width="12" stroke-linecap="round"
+              stroke-linejoin="round" />
+            <path d="M 80 20 L 30 65" stroke="url(#bq-silver)" stroke-width="12" stroke-linecap="round" />
+            <path d="M 20 20 L 70 65" stroke="url(#bq-green)" stroke-width="12" stroke-linecap="round" />
+            <path d="M 80 20 V 55 C 80 80 60 92 50 95" stroke="url(#bq-silver)" stroke-width="12" stroke-linecap="round"
+              stroke-linejoin="round" />
+            <path d="M 40 85 C 45 92 50 95 50 95" stroke="url(#bq-green)" stroke-width="12" stroke-linecap="round"
+              stroke-linejoin="round" />
+            <path d="M 33 55 Q 48 60 48 83 Q 32 75 33 55 Z" fill="url(#bq-green)" />
+          </svg>
+          <span
+            style="font-family: 'Playfair Display', Georgia, serif; font-weight: 700; letter-spacing: -0.5px; font-size: 1.8rem;">BioQuorix</span>
+        </a>
+        <h2>Create Account</h2>
+        <p class="auth-subtitle">Start your personalized biotech learning path</p>
+        <form class="auth-form" onsubmit="handleSignup(event)">
+          <div class="form-group">
+            <label class="form-label">Full Name</label>
+            <input type="text" class="form-input" id="signupName" placeholder="Your Name" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Email</label>
+            <input type="email" class="form-input" id="signupEmail" placeholder="you@example.com" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Password</label>
+            <input type="password" class="form-input" id="signupPassword" placeholder="Minimum 6 characters" required
+              minlength="6">
+          </div>
+          <button type="submit" class="btn btn-primary" style="width:100%;">Create Account</button>
+        </form>
+        <div class="auth-footer">
+          Already have an account? <a href="#" onclick="navigateTo('login')">Sign In</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== PROFILE SETUP PAGE ========== -->
+  <div id="page-setup" class="page hidden">
+    <div class="setup-page">
+      <div class="glass-card setup-card">
+        <div class="setup-steps" id="setupSteps">
+          <div class="setup-step active" data-step="1">
+            <span class="step-number">1</span>
+            <span>Level</span>
+          </div>
+          <div class="setup-step" data-step="2">
+            <span class="step-number">2</span>
+            <span>Interests</span>
+          </div>
+          <div class="setup-step" data-step="3">
+            <span class="step-number">3</span>
+            <span>Diagnostic</span>
+          </div>
+        </div>
+
+        <!-- Step 1: Level Selection -->
+        <div id="setup-step-1" class="setup-body">
+          <h3 style="text-align:center; margin-bottom:8px;">Choose Your Level</h3>
+          <p style="text-align:center; margin-bottom:24px; font-size:0.9rem;">This helps our AI generate content at the
+            right difficulty.</p>
+          <div class="level-options">
+            <div class="level-card" onclick="selectLevel('school', this)">
+              <div class="level-icon">🏫</div>
+              <h4>School Level</h4>
+              <p>Class 11-12 Biology & Biotech basics</p>
+            </div>
+            <div class="level-card" onclick="selectLevel('university', this)">
+              <div class="level-icon">🎓</div>
+              <h4>University Level</h4>
+              <p>B.Sc / B.Tech Biotechnology</p>
+            </div>
+          </div>
+          <button class="btn btn-primary" style="width:100%; margin-top:16px;" onclick="nextSetupStep(2)"
+            id="btnToStep2" disabled>Continue →</button>
+        </div>
+
+        <!-- Step 2: Interest Selection -->
+        <div id="setup-step-2" class="setup-body hidden">
+          <h3 style="text-align:center; margin-bottom:8px;">Select Your Interests</h3>
+          <p style="text-align:center; margin-bottom:24px; font-size:0.9rem;">Pick topics you want to focus on. You can
+            change these later.</p>
+          <div class="topic-tags" id="interestTags">
+            <!-- Populated by JS -->
+          </div>
+          <button class="btn btn-primary" style="width:100%; margin-top:24px;" onclick="nextSetupStep(3)">Continue to
+            Diagnostic Quiz →</button>
+        </div>
+
+        <!-- Step 3: Diagnostic Quiz -->
+        <div id="setup-step-3" class="setup-body hidden">
+          <div id="diagnosticQuizArea">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== DASHBOARD (App Layout) ========== -->
+  <div id="page-dashboard" class="page hidden">
+    <div class="app-layout">
+      <!-- Sidebar -->
+      <aside class="sidebar">
+        <div class="sidebar-section-title">📌 Main</div>
+        <ul class="sidebar-nav">
+          <li><a href="#" class="active" onclick="showDashboardSection('overview')" id="nav-overview"><span
+                class="nav-icon">📊</span> Overview</a></li>
+          <li><a href="#" onclick="showDashboardSection('learn')" id="nav-learn"><span class="nav-icon">📖</span>
+              Learn</a></li>
+          <li><a href="#" onclick="showDashboardSection('quiz')" id="nav-quiz"><span class="nav-icon">📝</span>
+              Quizzes</a></li>
+          <li><a href="#" onclick="showDashboardSection('flashcards')" id="nav-flashcards"><span
+                class="nav-icon">📇</span> Flashcards</a></li>
+          <li><a href="#" onclick="showDashboardSection('chat')" id="nav-chat"><span class="nav-icon">💬</span> AI
+              Tutor</a></li>
+        </ul>
+        <div class="sidebar-section-title">🚀 Progress</div>
+        <ul class="sidebar-nav">
+          <li><a href="#" onclick="showDashboardSection('path')" id="nav-path"><span class="nav-icon">🗺️</span>
+              Learning Path</a></li>
+          <li><a href="#" onclick="showDashboardSection('analytics')" id="nav-analytics"><span
+                class="nav-icon">📈</span> Analytics</a></li>
+          <li><a href="#" onclick="showDashboardSection('leaderboard')" id="nav-leaderboard"><span
+                class="nav-icon">🏆</span> Leaderboard</a></li>
+        </ul>
+        </ul>
+
+        <!-- User Card at bottom -->
+        <div style="margin-top:auto; padding-top:16px; border-top:1px solid var(--border-color);">
+          <div style="display:flex; align-items:center; gap:12px;">
+            <div
+              style="width:36px;height:36px;border-radius:50%;background:var(--gradient-primary);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.9rem;"
+              id="sidebarAvatar">S</div>
+            <div>
+              <div style="font-weight:600;font-size:0.9rem;" id="sidebarName">Student</div>
+              <div style="font-size:0.75rem;color:var(--text-muted);" id="sidebarLevel">School Level</div>
+              <div style="font-size:0.75rem;color:var(--primary-500);font-weight:700;margin-top:2px;" id="sidebarXp">✨ 0
+                XP</div>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Main Content Area -->
+      <main class="main-content">
+
+        <!-- Overview Section -->
+        <div id="section-overview" class="dashboard-section">
+          <div class="dashboard-header">
+            <h2>Welcome back, <span class="text-gradient" id="dashUserName">Student</span>! 👋</h2>
+            <p>Here's your learning progress at a glance.</p>
+          </div>
+
+          <div class="stats-grid stagger-children">
+            <div class="glass-card stat-card hover-elevate">
+              <div class="stat-header">
+                <div class="stat-icon-box" style="background:rgba(16,185,129,0.15);">📚</div>
+                <span class="stat-trend up">↑ Active</span>
+              </div>
+              <div class="stat-value" id="statModules">0</div>
+              <div class="stat-label">Modules Completed</div>
+            </div>
+            <div class="glass-card stat-card hover-elevate">
+              <div class="stat-header">
+                <div class="stat-icon-box" style="background:rgba(139,92,246,0.15);">📝</div>
+                <span class="stat-trend up">↑ Growing</span>
+              </div>
+              <div class="stat-value" id="statQuizzes">0</div>
+              <div class="stat-label">Quizzes Taken</div>
+            </div>
+            <div class="glass-card stat-card hover-elevate">
+              <div class="stat-header">
+                <div class="stat-icon-box" style="background:rgba(245,158,11,0.15);">🎯</div>
+              </div>
+              <div class="stat-value" id="statAvgScore">0%</div>
+              <div class="stat-label">Average Score</div>
+            </div>
+            <div class="glass-card stat-card hover-elevate">
+              <div class="stat-header">
+                <div class="stat-icon-box" style="background:rgba(20,184,166,0.15);">⏱️</div>
+              </div>
+              <div class="stat-value" id="statStreak">0</div>
+              <div class="stat-label">Day Streak</div>
+            </div>
+          </div>
+
+          <!-- Daily Quest -->
+          <div id="dailyQuestContainer"></div>
+
+          <!-- Master Anything (Dynamic Curriculum) -->
+          <h3 style="margin-bottom:16px; margin-top:24px;">✨ Master Anything</h3>
+          <div class="glass-card"
+            style="margin-bottom:24px; display:flex; gap:12px; align-items:center; padding:16px; flex-wrap:wrap;">
+            <input type="text" class="form-input" id="dynamicTopicInput"
+              placeholder="What do you want to learn today? (e.g., Synthetic Biology, CRISPR, DeepMind AI...)"
+              style="flex:1;" onkeydown="if(event.key==='Enter') generateDynamicCurriculum()">
+            <button class="btn btn-primary ripple-btn hover-elevate" onclick="generateDynamicCurriculum()">Generate
+              Course</button>
+          </div>
+
+          <!-- Quick Actions -->
+          <h3 style="margin-bottom:16px;">⚡ Quick Actions</h3>
+          <div class="features-grid" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr));">
+            <div class="glass-card hover-elevate" style="cursor:pointer; text-align:center;"
+              onclick="showDashboardSection('learn')">
+              <div style="font-size:2rem; margin-bottom:8px;">📖</div>
+              <h4>📚 Continue Learning</h4>
+              <p style="font-size:0.85rem;">Pick up where you left off</p>
+            </div>
+            <div class="glass-card hover-elevate" style="cursor:pointer; text-align:center;"
+              onclick="showDashboardSection('quiz')">
+              <div style="font-size:2rem; margin-bottom:8px;">📝</div>
+              <h4>🤔 Take a Quiz</h4>
+              <p style="font-size:0.85rem;">Test your knowledge</p>
+            </div>
+            <div class="glass-card hover-elevate" style="cursor:pointer; text-align:center;"
+              onclick="showDashboardSection('chat')">
+              <div style="font-size:2rem; margin-bottom:8px;">💬</div>
+              <h4>🤖 Ask AI Tutor</h4>
+              <p style="font-size:0.85rem;">Get instant help</p>
+            </div>
+            <div class="glass-card hover-elevate" style="cursor:pointer; text-align:center;"
+              onclick="showDashboardSection('analytics')">
+              <div style="font-size:2rem; margin-bottom:8px;">📊</div>
+              <h4>📉 View Analytics</h4>
+              <p style="font-size:0.85rem;">Track your progress</p>
+            </div>
+          </div>
+
+          <!-- Recent Activity -->
+          <h3 style="margin: 24px 0 16px;">🕒 Recent Activity</h3>
+          <div class="glass-card" id="recentActivity"
+            style="padding: 0; overflow: hidden; background: var(--bg-input); border: 1px solid var(--border-color); border-radius: 12px;">
+            <div class="empty-state" style="padding:24px;">
+              <div class="empty-icon">📋</div>
+              <h4>No activity yet</h4>
+              <p>Start learning to see your activity here!</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Learn Section -->
+        <div id="section-learn" class="dashboard-section hidden">
+          <div class="dashboard-header">
+            <h2>📖 Learning Modules</h2>
+            <p>AI-generated lessons tailored to your level and interests.</p>
+          </div>
+          <div id="moduleViewerArea">
+            <!-- Recently Accessed Section -->
+            <div id="recentModulesArea" class="hidden" style="margin-bottom: 32px;">
+              <h3 style="margin-bottom:16px;">🕰️ Recently Accessed</h3>
+              <div class="features-grid" id="recentModuleGrid">
+                <!-- Populated by JS -->
+              </div>
+            </div>
+
+            <!-- Topic list to select from -->
+            <h3 style="margin-bottom:16px;">📚 All Topics</h3>
+            <div class="features-grid" id="moduleTopicGrid">
+              <!-- Populated by JS -->
+            </div>
+          </div>
+          <!-- Module content area (shown when a topic is selected) -->
+          <div id="moduleContentArea" class="hidden" style="margin-top:24px;">
+            <button class="btn btn-ghost" onclick="backToModuleList()" style="margin-bottom:16px;">← Back to
+              Topics</button>
+            <div class="glass-card module-content" id="moduleContentDisplay">
+              <div style="display:flex; align-items:center; justify-content:center; padding:48px;">
+                <div class="spinner"></div>
+                <span style="margin-left:16px; color:var(--text-muted);">AI is generating your personalized
+                  lesson...</span>
+              </div>
+            </div>
+            <div style="display:flex; gap:12px; margin-top:16px;">
+              <button class="btn btn-primary" onclick="startTopicQuiz()">Take Quiz on This Topic →</button>
+              <button class="btn btn-secondary" onclick="generateFlashcards()">Generate Flashcards 📇</button>
+              <button class="btn btn-secondary" onclick="showDashboardSection('chat')">Ask AI Doubts 💬</button>
+              <button class="btn btn-secondary" onclick="exportNotes()">Download 📥</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quiz Section -->
+        <div id="section-quiz" class="dashboard-section hidden">
+          <div class="dashboard-header">
+            <h2>📝 Quiz & Assessment</h2>
+            <p>Test your knowledge with AI-generated quizzes.</p>
+          </div>
+          <div id="quizSelectionArea">
+            <h3 style="margin-bottom:16px;">🎯 Choose a Topic</h3>
+            <div class="features-grid" id="quizTopicGrid">
+              <!-- Populated by JS -->
+            </div>
+          </div>
+          <div id="quizPlayArea" class="hidden">
+            <div class="quiz-container">
+              <div class="quiz-progress-bar">
+                <div class="progress-fill" id="quizProgressFill" style="width:0%"></div>
+              </div>
+              <div class="glass-card" id="quizQuestionCard">
+                <!-- Quiz questions rendered here -->
+              </div>
+              <div class="quiz-footer">
+                <span id="quizCounter" style="color:var(--text-muted);">Question 1 of 5</span>
+                <button class="btn btn-primary" id="quizNextBtn" onclick="nextQuizQuestion()" disabled>Next Question
+                  →</button>
+              </div>
+            </div>
+          </div>
+          <div id="quizResultsArea" class="hidden">
+            <div class="glass-card results-card" style="max-width:560px; margin:0 auto;">
+              <div style="font-size:3rem;">🎉</div>
+              <h2 style="margin-top:12px;">Quiz Complete!</h2>
+              <div class="results-score text-gradient" id="quizFinalScore">80%</div>
+              <div class="results-breakdown">
+                <div class="breakdown-item">
+                  <div class="breakdown-value" style="color:var(--success);" id="quizCorrectCount">4</div>
+                  <div class="breakdown-label">Correct</div>
+                </div>
+                <div class="breakdown-item">
+                  <div class="breakdown-value" style="color:var(--error);" id="quizWrongCount">1</div>
+                  <div class="breakdown-label">Wrong</div>
+                </div>
+                <div class="breakdown-item">
+                  <div class="breakdown-value" style="color:var(--info);" id="quizTotalQ">5</div>
+                  <div class="breakdown-label">Total</div>
+                </div>
+              </div>
+              <div id="quizFeedback"
+                style="text-align:left; margin: 16px 0; padding: 16px; background:rgba(16,185,129,0.06); border-radius:12px; border-left:3px solid var(--primary-500);">
+                <!-- AI feedback -->
+              </div>
+              <div style="display:flex; gap:12px; justify-content:center; margin-top:16px;">
+                <button class="btn btn-primary" onclick="retakeQuiz()">Retake Quiz</button>
+                <button class="btn btn-secondary" onclick="backToQuizSelection()">Choose Another Topic</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- AI Chat Section -->
+        <div id="section-chat" class="dashboard-section hidden">
+          <div class="glass-card chat-container">
+            <div
+              style="padding:16px 20px; border-bottom:1px solid var(--border-color); display:flex; align-items:center; justify-content:space-between; gap:12px;">
+              <div style="display:flex; align-items:center; gap:12px;">
+                <div
+                  style="width:40px;height:40px;border-radius:50%;background:rgba(16,185,129,0.15);display:flex;align-items:center;justify-content:center;font-size:1.2rem;">
+                  🌿</div>
+                <div>
+                  <div style="font-weight:600;">BioQuorix AI Tutor</div>
+                  <div style="font-size:0.8rem;color:var(--primary-400);">● Online — Ask me anything!</div>
+                </div>
+              </div>
+              <div style="display:flex; align-items:center; gap:8px;">
+                <span style="font-size:0.75rem; color:var(--text-muted); font-weight:500;">Persona:</span>
+                <select class="form-input"
+                  style="padding:4px 8px; font-size:0.8rem; width:auto; height:auto; border-radius:8px; border:1px solid var(--border-color); background:var(--bg-secondary);"
+                  onchange="changeTutorPersonality(this.value)">
+                  <option value="emoji">✨ Emoji-friendly</option>
+                  <option value="professor">🎓 Professor</option>
+                  <option value="comrade">✊ Comrade</option>
+                </select>
+              </div>
+            </div>
+            <div class="chat-messages" id="chatMessages">
+              <div class="chat-message ai">
+                <div class="chat-avatar">🌿</div>
+                <div class="chat-bubble">Hi there! 👋 I'm your BioQuorix AI Tutor. Ask me anything about biotechnology —
+                  from DNA basics to CRISPR, enzyme kinetics to bioinformatics. I'll explain it at your level. What
+                  would you like to learn about?</div>
+              </div>
+            </div>
+            <div class="chat-input-area">
+              <input type="text" class="form-input" id="chatInput" placeholder="Ask a question about biotechnology..."
+                onkeydown="if(event.key==='Enter') sendChatMessage()">
+              <button class="btn btn-primary btn-icon" onclick="sendChatMessage()" style="border-radius:50%;">➤</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Flashcards Section -->
+        <div id="section-flashcards" class="dashboard-section hidden">
+          <div class="dashboard-header">
+            <h2>📇 Flashcards</h2>
+            <p>Review key concepts with AI-generated spaced repetition.</p>
+          </div>
+
+          <div id="flashcardsSelectionArea">
+            <h3 style="margin-bottom:16px;">🃏 Choose a Deck</h3>
+            <div class="features-grid" id="flashcardDeckGrid">
+              <!-- Populated by JS -->
+            </div>
+          </div>
+
+          <div id="flashcardsPlayArea" class="hidden">
+            <div class="flashcard-view">
+              <!-- Deck Progress -->
+              <div class="deck-progress-container">
+                <div class="progress-track" style="flex:1;">
+                  <div class="progress-fill" id="deckProgressFill" style="width:0%"></div>
+                </div>
+                <div class="deck-progress-text" id="deckProgressText">0/0</div>
+              </div>
+
+              <!-- Flashcard -->
+              <div class="flashcard-container">
+                <div class="flashcard" id="activeFlashcard" onclick="flipFlashcard()">
+                  <div class="flashcard-face flashcard-front">
+                    <span class="flashcard-badge">Question</span>
+                    <h3 id="flashcardFrontText">Front Text</h3>
+                    <div id="flashcardHint" style="margin-top:24px; color:var(--text-muted); font-size:0.8rem;">Click to
+                      flip</div>
+                  </div>
+                  <div class="flashcard-face flashcard-back">
+                    <span class="flashcard-badge">Answer</span>
+                    <p id="flashcardBackText">Back Text</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Controls -->
+              <div id="flashcardControls"
+                style="display:flex; gap:16px; align-items:center; justify-content:center; width:100%;">
+                <button class="btn btn-danger hover-elevate" onclick="rateFlashcard(1)" title="Shortcut: 1">Hard
+                  (1)</button>
+                <button class="btn btn-primary hover-elevate" onclick="rateFlashcard(2)" title="Shortcut: 2">Good
+                  (2)</button>
+                <button class="btn btn-secondary hover-elevate" onclick="rateFlashcard(3)" title="Shortcut: 3">Easy
+                  (3)</button>
+              </div>
+
+              <div id="flashcardCounter"
+                style="margin-top:20px; color:var(--text-muted); font-family:'JetBrains Mono', monospace; font-size:0.9rem;">
+                1 / 5 due today</div>
+
+              <button class="btn btn-ghost" style="margin-top:32px;" onclick="backToFlashcardDecks()">← Back to
+                Decks</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Learning Path Section -->
+        <div id="section-path" class="dashboard-section hidden">
+          <div class="dashboard-header">
+            <h2>🗺️ Your Learning Path</h2>
+            <p>AI-recommended sequence of topics based on your progress and goals.</p>
+          </div>
+          <div class="path-timeline" id="learningPathTimeline">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+
+        <!-- Analytics Section -->
+        <div id="section-analytics" class="dashboard-section hidden">
+          <div class="dashboard-header">
+            <h2>📈 Analytics Dashboard</h2>
+            <p>Track your learning journey with detailed insights.</p>
+          </div>
+          <div class="charts-grid">
+            <div class="glass-card chart-card">
+              <div class="chart-header">
+                <h4>📈 Quiz Scores Over Time</h4>
+                <span class="badge green">Last 10 quizzes</span>
+              </div>
+              <canvas id="chartScores"></canvas>
+            </div>
+            <div class="glass-card chart-card">
+              <div class="chart-header">
+                <h4>🎯 Topic Proficiency</h4>
+                <span class="badge purple">All topics</span>
+              </div>
+              <canvas id="chartTopics"></canvas>
+            </div>
+            <div class="glass-card chart-card">
+              <div class="chart-header">
+                <h4>⏳ Time Spent per Topic</h4>
+                <span class="badge amber">This week</span>
+              </div>
+              <canvas id="chartTime"></canvas>
+            </div>
+            <div class="glass-card chart-card">
+              <div class="chart-header">
+                <h4>⚖️ Difficulty Distribution</h4>
+                <span class="badge blue">All quizzes</span>
+              </div>
+              <canvas id="chartDifficulty"></canvas>
+            </div>
+          </div>
+
+          <!-- Strength & Weakness -->
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:24px;">
+            <div class="glass-card">
+              <h4 style="margin-bottom:16px; color:var(--success);">💪 Strengths</h4>
+              <div id="strengthsList">
+                <!-- Populated by JS -->
+              </div>
+            </div>
+            <div class="glass-card">
+              <h4 style="margin-bottom:16px; color:var(--warning);">🔧 Areas to Improve</h4>
+              <div id="weaknessesList">
+                <!-- Populated by JS -->
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Credit History Section -->
+        <div id="section-credits" class="dashboard-section hidden">
+          <div class="dashboard-header">
+            <h2>✨ Credit History</h2>
+            <p>Track your XP earnings and detailed learning activities.</p>
+          </div>
+          <div class="glass-card"
+            style="padding: 0; overflow: hidden; background: #1f1f22; border: 1px solid rgba(255,255,255,0.05); border-radius: 12px;">
+            <div id="creditHistoryList">
+              <!-- Populated by JS -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Leaderboard Section -->
+        <div id="section-leaderboard" class="dashboard-section hidden">
+          <div class="dashboard-header">
+            <div style="display:flex; justify-content:space-between; align-items:flex-end;">
+              <div>
+                <h2>🏆 Local Leaderboard</h2>
+                <p>See how your XP stacks up against other students on this device!</p>
+              </div>
+              <button class="btn btn-primary btn-sm" onclick="showAddUserModal()" style="margin-bottom:8px;">+ Add
+                Student</button>
+            </div>
+          </div>
+          <div class="glass-card" style="max-width:800px; margin:0 auto; padding:24px;">
+            <div id="leaderboardContainer" class="stagger-children"
+              style="display:flex; flex-direction:column; gap:12px;">
+              <!-- Populated by JS -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Profile Section -->
+        <div id="section-profile" class="dashboard-section hidden">
+          <div class="dashboard-header">
+            <h2>👤 Profile Settings</h2>
+            <p>Manage your account and learning preferences.</p>
+          </div>
+          <div style="max-width:560px;" class="stagger-children">
+            <!-- Rename Section -->
+            <div class="glass-card scroll-reveal delay-1" style="margin-bottom:24px;">
+              <h4 style="margin-bottom:16px;">✏️ Rename Account</h4>
+              <div class="auth-form">
+                <div class="form-group">
+                  <label class="form-label">New Full Name</label>
+                  <input type="text" class="form-input" id="profileName" placeholder="Enter new name...">
+                </div>
+                <button class="btn btn-primary" onclick="saveProfile()" style="width:100%;">Apply New Name</button>
+              </div>
+            </div>
+
+            <!-- Switch Account Jump -->
+            <div class="glass-card scroll-reveal delay-2" style="margin-bottom:24px;">
+              <h4 style="margin-bottom:16px;">👥 Switch Users</h4>
+              <p style="font-size:0.9rem; color:var(--text-secondary); margin-bottom:16px;">Jump to another student's
+                account on this device.</p>
+              <button class="btn btn-secondary" onclick="showDashboardSection('leaderboard')" style="width:100%;">Open
+                Local Leaderboard →</button>
+            </div>
+
+            <!-- Privacy & Data Section -->
+            <div class="glass-card scroll-reveal delay-3" style="margin-bottom:24px;">
+              <h4 style="margin-bottom:16px;">🔒 Privacy & Data</h4>
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+                <button class="btn btn-secondary" onclick="clearChatHistory()" style="font-size:0.85rem;">Clear AI Chat
+                  History</button>
+                <button class="btn btn-secondary" onclick="exportUserData()" style="font-size:0.85rem;">Export My Data
+                  📤</button>
+              </div>
+            </div>
+
+            <!-- Delete Section -->
+            <div class="glass-card scroll-reveal delay-4" style="border-color:rgba(239,68,68,0.2);">
+              <h4 style="margin-bottom:16px; color:var(--error);">⚠️ Danger Zone</h4>
+              <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:16px;">Permanently remove your account
+                and all associated data from this device.</p>
+              <button class="btn btn-danger" onclick="deleteLocalAccount()" style="width:100%;">FORCE DELETE
+                ACCOUNT</button>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- ========== QUICK ADD USER MODAL ========== -->
+  <div id="addUserModal" class="hidden"
+    style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:10000; display:flex; align-items:center; justify-content:center; backdrop-filter:blur(8px);">
+    <div class="glass-card" style="width:100%; max-width:440px; padding:32px; position:relative;">
+      <button onclick="hideAddUserModal()"
+        style="position:absolute; top:20px; right:20px; background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:1.5rem;">&times;</button>
+      <div style="text-align:center; margin-bottom:24px;">
+        <div style="font-size:2.5rem; margin-bottom:8px;">👥</div>
+        <h3>Add New Student</h3>
+        <p style="font-size:0.9rem; color:var(--text-secondary);">Create another account on this device.</p>
+      </div>
+      <form id="quickAddForm" class="auth-form">
+        <div class="form-group">
+          <label class="form-label">Full Name</label>
+          <input type="text" class="form-input" id="quickName" placeholder="Student Name">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Email</label>
+          <input type="email" class="form-input" id="quickEmail" placeholder="student@example.com">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <input type="password" class="form-input" id="quickPassword" placeholder="Create a password">
+        </div>
+        <button type="button" class="btn btn-primary" onclick="handleQuickSignup(event)"
+          style="width:100%; margin-top:8px;">Create & Switch
+          Account</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast" style="position:fixed; bottom:24px; right:24px; z-index:9999; display:none;">
+    <div class="glass-card" style="padding:12px 20px; display:flex; align-items:center; gap:12px; min-width:280px;"
+      id="toastInner">
+      <span id="toastIcon">✅</span>
+      <span id="toastMsg">Saved successfully!</span>
+    </div>
+  </div>
+
+  <!-- Confetti Animation Library -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/app.js"></script>
+</body>
+
+</html>

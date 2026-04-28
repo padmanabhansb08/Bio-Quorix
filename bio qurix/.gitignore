@@ -1,0 +1,10 @@
+Thumbs.db
+.DS_Store
+
+node_modules/
+
+# local extraction/work dirs
+app/
+
+# archives
+*.zip
