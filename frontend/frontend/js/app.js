@@ -28,7 +28,7 @@ const APP_STATE = {
     tutorPersonality: 'emoji', // 'emoji', 'professor', 'comrade'
     lastLessonText: '',
     studyContext: {
-        subject: localStorage.getItem('selectedSubject') || 'Biology',
+        subject: localStorage.getItem('selectedSubject') || 'All Topics',
         topic: localStorage.getItem('selectedTopic') || 'General',
         difficulty: localStorage.getItem('selectedDifficulty') || 'Intermediate'
     }
@@ -161,7 +161,7 @@ let AUTH_TOKEN = localStorage.getItem('bionexus_token');
 // ===== STUDY CONTEXT =====
 function getSelectedStudyContext() {
     const context = {
-        subject: localStorage.getItem('selectedSubject') || APP_STATE.studyContext?.subject || 'Biology',
+        subject: localStorage.getItem('selectedSubject') || APP_STATE.studyContext?.subject || 'All Topics',
         topic: localStorage.getItem('selectedTopic') || APP_STATE.studyContext?.topic || 'General',
         difficulty: localStorage.getItem('selectedDifficulty') || APP_STATE.studyContext?.difficulty || 'Intermediate'
     };
@@ -192,7 +192,7 @@ function renderSubjectSelector() {
 }
 
 function saveStudySelection() {
-    const subject = document.getElementById('selectedSubjectInput')?.value || 'Biology';
+    const subject = document.getElementById('selectedSubjectInput')?.value || 'All Topics';
     const topic = document.getElementById('selectedTopicInput')?.value.trim() || 'General';
     const difficulty = document.getElementById('selectedDifficultyInput')?.value || 'Intermediate';
 
@@ -229,13 +229,21 @@ function slugifyTopic(text) {
 function getTopicsForCurrentSelection() {
     const user = APP_STATE.currentUser || {};
     const context = getSelectedStudyContext();
-    if (context.subject === 'Biology') {
-        const biologyTopics = BIOTECH_TOPICS[user.level] || BIOTECH_TOPICS.school || [];
-        if (context.topic && context.topic !== 'General') {
-            const matched = biologyTopics.find(t => t.name.toLowerCase() === context.topic.toLowerCase() || t.id === slugifyTopic(context.topic));
-            if (matched) return [matched, ...biologyTopics.filter(t => t.id !== matched.id)];
+    if (context.subject === 'All Topics') {
+        const biologyTopics = typeof BIOTECH_TOPICS !== 'undefined' ? (BIOTECH_TOPICS[user.level] || BIOTECH_TOPICS.school || []) : [];
+        const allTopics = typeof MIXED_INTEREST_TOPICS !== 'undefined' ? [...MIXED_INTEREST_TOPICS, ...biologyTopics] : biologyTopics;
+        
+        let topicsToReturn = allTopics;
+        const userInterests = user.interests || [];
+        if (userInterests.length > 0) {
+            topicsToReturn = allTopics.filter(t => userInterests.includes(t.id));
         }
-        return biologyTopics;
+        
+        if (context.topic && context.topic !== 'General') {
+            const matched = allTopics.find(t => t.name.toLowerCase() === context.topic.toLowerCase() || t.id === slugifyTopic(context.topic));
+            if (matched) return [matched, ...topicsToReturn.filter(t => t.id !== matched.id)];
+        }
+        return topicsToReturn;
     }
 
     const topicName = context.topic || 'General';
@@ -452,7 +460,7 @@ async function loadUserFullProfile() {
                     ...q,
                     topicId: q.topicId || q.topic_id,
                     topicName: q.topicName || q.topic_name || q.topic,
-                    subject: q.subject || 'Biology',
+                    subject: q.subject || 'All Topics',
                     topic: q.topic || q.topic_name || 'General',
                     difficulty: q.difficulty || 'Intermediate',
                     date: q.created_at || q.date
@@ -467,7 +475,7 @@ async function loadUserFullProfile() {
                     APP_STATE.currentUser.flashcardDecks[card.topic_id].push({
                         front: card.question || card.front,
                         back: card.answer || card.back,
-                        subject: card.subject || 'Biology',
+                        subject: card.subject || 'All Topics',
                         topic: card.topic || card.topic_name || 'General',
                         difficulty: card.difficulty || 'Intermediate',
                         interval: card.interval,
@@ -545,8 +553,23 @@ function nextSetupStep(step) {
     }
 }
 
+const MIXED_INTEREST_TOPICS = [
+    { id: 'quantum-physics', name: 'Quantum Physics', icon: '⚛️' },
+    { id: 'organic-chemistry', name: 'Organic Chemistry', icon: '🧪' },
+    { id: 'calculus', name: 'Calculus', icon: '📐' },
+    { id: 'artificial-intelligence', name: 'Artificial Intelligence', icon: '🤖' },
+    { id: 'world-history', name: 'World History', icon: '🌍' },
+    { id: 'macroeconomics', name: 'Macroeconomics', icon: '📈' },
+    { id: 'creative-writing', name: 'Creative Writing', icon: '✍️' },
+    { id: 'genetics', name: 'Genetics & Evolution', icon: '🧬' },
+    { id: 'psychology', name: 'Cognitive Psychology', icon: '🧠' },
+    { id: 'astrophysics', name: 'Astrophysics', icon: '🌌' },
+    { id: 'cybersecurity', name: 'Cybersecurity', icon: '🔒' },
+    { id: 'environmental-science', name: 'Environmental Science', icon: '🌱' }
+];
+
 function populateInterestTags() {
-    const topics = BIOTECH_TOPICS[selectedLevel] || [];
+    const topics = MIXED_INTEREST_TOPICS;
     const container = document.getElementById('interestTags');
     container.innerHTML = topics.map(t => `
     <span class="topic-tag" onclick="toggleInterest('${t.id}', this)">${t.icon} ${t.name}</span>
@@ -565,11 +588,27 @@ function toggleInterest(topicId, el) {
 // ===== DIAGNOSTIC QUIZ =====
 function startDiagnosticQuiz() {
     const level = APP_STATE.currentUser.level;
-    const topics = BIOTECH_TOPICS[level] || [];
+    const biologyTopics = typeof BIOTECH_TOPICS !== 'undefined' ? (BIOTECH_TOPICS[level] || []) : [];
+    const topics = typeof MIXED_INTEREST_TOPICS !== 'undefined' ? [...MIXED_INTEREST_TOPICS, ...biologyTopics] : biologyTopics;
+    
+    const userInterests = APP_STATE.currentUser.interests || [];
+    
+    // Get topics the user selected that have quiz questions
+    let selectedTopics = topics.filter(t => userInterests.includes(t.id) && typeof QUIZ_BANK !== 'undefined' && QUIZ_BANK[t.id]);
+    
+    // Only fall back to random topics if the user didn't select ANY valid topics
+    if (selectedTopics.length === 0) {
+        const otherTopics = topics.filter(t => typeof QUIZ_BANK !== 'undefined' && QUIZ_BANK[t.id]);
+        otherTopics.sort(() => Math.random() - 0.5);
+        selectedTopics = otherTopics.slice(0, 5);
+    } else {
+        // If they selected some topics, just test them on those, even if it's less than 5
+        selectedTopics = selectedTopics.slice(0, 5);
+    }
 
-    // Pick 2 questions from each of 5 topics for a 10-question diagnostic
+    // Pick 2 questions from each selected topic
     let diagnosticQuestions = [];
-    const availableTopics = topics.filter(t => QUIZ_BANK[t.id]).slice(0, 5);
+    const availableTopics = selectedTopics;
 
     availableTopics.forEach(topic => {
         const qs = QUIZ_BANK[topic.id];
@@ -843,9 +882,9 @@ function renderSubjectProgress() {
 
     const context = getSelectedStudyContext();
     const quizHistory = user.quizHistory || [];
-    const subjectQuizzes = quizHistory.filter(q => (q.subject || 'Biology') === context.subject);
+    const subjectQuizzes = quizHistory.filter(q => (q.subject || 'All Topics') === context.subject);
     const subjectDecks = Object.values(user.flashcardDecks || {}).filter(deck =>
-        deck.some(card => (card.subject || 'Biology') === context.subject)
+        deck.some(card => (card.subject || 'All Topics') === context.subject)
     );
     const avg = subjectQuizzes.length
         ? Math.round(subjectQuizzes.reduce((sum, q) => sum + (q.score || 0), 0) / subjectQuizzes.length)
@@ -1606,7 +1645,7 @@ async function callAI(prompt, studyContext = getSelectedStudyContext()) {
             },
             body: JSON.stringify({
                 prompt,
-                subject: context.subject || 'Biology',
+                subject: context.subject || 'All Topics',
                 topic: context.topic || 'General',
                 difficulty: context.difficulty || 'Intermediate'
             })
@@ -1735,7 +1774,17 @@ function generateFallbackChatResponse(question) {
 function renderLearningPath() {
     const user = APP_STATE.currentUser;
     if (!user) return;
-    const topics = BIOTECH_TOPICS[user.level] || [];
+    
+    const biologyTopics = typeof BIOTECH_TOPICS !== 'undefined' ? (BIOTECH_TOPICS[user.level] || []) : [];
+    const allTopics = typeof MIXED_INTEREST_TOPICS !== 'undefined' ? [...MIXED_INTEREST_TOPICS, ...biologyTopics] : biologyTopics;
+    
+    const userInterests = user.interests || [];
+    let topics = allTopics.filter(t => userInterests.includes(t.id));
+    
+    if (topics.length === 0) {
+        topics = allTopics.slice(0, 5);
+    }
+    
     const timeline = document.getElementById('learningPathTimeline');
 
     timeline.innerHTML = topics.map((t, index) => {
@@ -1808,7 +1857,10 @@ function renderAnalytics() {
     }
 
     // 2. Topic Proficiency (Radar)
-    const topics = BIOTECH_TOPICS[user.level] || [];
+    const biologyTopics = typeof BIOTECH_TOPICS !== 'undefined' ? (BIOTECH_TOPICS[user.level] || []) : [];
+    const allTopics = typeof MIXED_INTEREST_TOPICS !== 'undefined' ? [...MIXED_INTEREST_TOPICS, ...biologyTopics] : biologyTopics;
+    const topics = allTopics;
+    
     const topicLabels = topics.filter(t => quizScores[t.id] !== undefined).map(t => t.name.substring(0, 15));
     const topicScoreValues = topics.filter(t => quizScores[t.id] !== undefined).map(t => quizScores[t.id]);
 
@@ -2021,7 +2073,9 @@ function renderFlashcardDecks() {
     }
 
     grid.innerHTML = decks.map(topicId => {
-        const topic = BIOTECH_TOPICS[user.level]?.find(t => t.id === topicId) || { name: topicId, icon: '📇' };
+        const biologyTopics = typeof BIOTECH_TOPICS !== 'undefined' ? (BIOTECH_TOPICS[user.level] || []) : [];
+        const allTopics = typeof MIXED_INTEREST_TOPICS !== 'undefined' ? [...MIXED_INTEREST_TOPICS, ...biologyTopics] : biologyTopics;
+        const topic = allTopics.find(t => t.id === topicId) || { name: topicId, icon: '📇' };
         const deck = user.flashcardDecks[topicId];
         return `
       <div class="glass-card" style="cursor:pointer; display:flex; flex-direction:column; align-items:center; text-align:center;" onclick="openFlashcardDeck('${topicId}')">

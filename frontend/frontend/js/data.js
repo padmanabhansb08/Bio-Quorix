@@ -671,11 +671,59 @@ const QUIZ_BANK = {
       correct: 1,
       explanation: 'GEAC (Genetic Engineering Appraisal Committee) is the apex body under India\'s Ministry of Environment that approves the release of GMOs for commercial use.'
     }
+  ],
+  'quantum-physics': [
+    { question: 'What is a quantum of light called?', options: ['Proton', 'Electron', 'Photon', 'Neutron'], correct: 2, explanation: 'A photon is a fundamental particle representing a quantum of light.' },
+    { question: 'Which principle states that you cannot simultaneously know both the position and momentum of a particle?', options: ['Pauli Exclusion Principle', 'Heisenberg Uncertainty Principle', 'Bohr Model', 'Schrodinger Equation'], correct: 1, explanation: 'The Heisenberg Uncertainty Principle states this fundamental limit in quantum mechanics.' }
+  ],
+  'organic-chemistry': [
+    { question: 'What is the main element present in organic compounds?', options: ['Oxygen', 'Nitrogen', 'Carbon', 'Hydrogen'], correct: 2, explanation: 'Carbon is the backbone of all organic compounds.' },
+    { question: 'What type of bond involves sharing of electron pairs between atoms?', options: ['Ionic', 'Covalent', 'Hydrogen', 'Metallic'], correct: 1, explanation: 'Covalent bonds involve the sharing of electrons.' }
+  ],
+  'calculus': [
+    { question: 'The derivative of position with respect to time is:', options: ['Acceleration', 'Velocity', 'Jerk', 'Mass'], correct: 1, explanation: 'Velocity is the rate of change of position with respect to time.' },
+    { question: 'What is the integral of 2x?', options: ['x^2', '2', 'x', 'x^2 + C'], correct: 3, explanation: 'The integral of 2x is x^2 plus the constant of integration C.' }
+  ],
+  'artificial-intelligence': [
+    { question: 'What does NLP stand for in AI?', options: ['Natural Language Processing', 'Neural Logic Programming', 'New Learning Process', 'Network Layer Protocol'], correct: 0, explanation: 'NLP focuses on the interaction between computers and human language.' },
+    { question: 'Which type of machine learning involves training on labeled data?', options: ['Unsupervised', 'Supervised', 'Reinforcement', 'Deep'], correct: 1, explanation: 'Supervised learning uses labeled datasets to train algorithms.' }
+  ],
+  'world-history': [
+    { question: 'In which year did World War II end?', options: ['1945', '1939', '1918', '1965'], correct: 0, explanation: 'World War II ended in 1945 with the surrender of the Axis powers.' },
+    { question: 'Who was the first Emperor of Rome?', options: ['Julius Caesar', 'Augustus', 'Nero', 'Constantine'], correct: 1, explanation: 'Augustus (Octavian) became the first Roman Emperor in 27 BC.' }
+  ],
+  'macroeconomics': [
+    { question: 'What does GDP stand for?', options: ['Gross Domestic Product', 'General Domestic Price', 'Gross Demand Product', 'General Demand Price'], correct: 0, explanation: 'GDP is the total monetary value of all finished goods and services made within a country.' },
+    { question: 'Inflation is generally characterized by:', options: ['Decreasing prices', 'Increasing prices', 'Stable prices', 'Zero unemployment'], correct: 1, explanation: 'Inflation is the rate at which the general level of prices for goods and services is rising.' }
+  ],
+  'creative-writing': [
+    { question: 'What is the term for a story within a story?', options: ['Flashback', 'Foreshadowing', 'Frame narrative', 'Metaphor'], correct: 2, explanation: 'A frame narrative is a story that surrounds and introduces a secondary story.' },
+    { question: 'Which point of view uses pronouns like "I" and "we"?', options: ['First-person', 'Second-person', 'Third-person limited', 'Third-person omniscient'], correct: 0, explanation: 'First-person perspective is told from the narrator\'s point of view.' }
+  ],
+  'genetics': [
+    { question: 'Who is known as the father of modern genetics?', options: ['Charles Darwin', 'Gregor Mendel', 'James Watson', 'Francis Crick'], correct: 1, explanation: 'Gregor Mendel discovered the fundamental laws of inheritance.' },
+    { question: 'What is a phenotype?', options: ['The genetic makeup', 'The physical expression of a trait', 'A type of mutation', 'A sequence of DNA'], correct: 1, explanation: 'Phenotype refers to the observable physical properties of an organism.' }
+  ],
+  'psychology': [
+    { question: 'Who founded psychoanalysis?', options: ['B.F. Skinner', 'Carl Jung', 'Sigmund Freud', 'Ivan Pavlov'], correct: 2, explanation: 'Sigmund Freud is the founder of psychoanalysis.' },
+    { question: 'What is classical conditioning?', options: ['Learning through rewards', 'Learning through association', 'Learning through observation', 'Learning through punishment'], correct: 1, explanation: 'Classical conditioning involves learning to associate an unconditioned stimulus with a new stimulus.' }
+  ],
+  'astrophysics': [
+    { question: 'What is the closest star to Earth besides the Sun?', options: ['Sirius', 'Alpha Centauri A', 'Proxima Centauri', 'Betelgeuse'], correct: 2, explanation: 'Proxima Centauri is the closest known star to the Sun.' },
+    { question: 'What phenomenon occurs when a massive star collapses under its own gravity?', options: ['Supernova', 'Black hole', 'Nebula', 'Pulsar'], correct: 1, explanation: 'The collapse of a very massive star core can form a black hole.' }
+  ],
+  'cybersecurity': [
+    { question: 'What is a phishing attack?', options: ['A physical breach', 'Fraudulent communication to steal data', 'A firewall block', 'A network encryption protocol'], correct: 1, explanation: 'Phishing involves sending deceptive emails to steal sensitive information.' },
+    { question: 'What does a VPN do?', options: ['Speeds up internet', 'Encrypts internet traffic', 'Removes viruses', 'Blocks ads'], correct: 1, explanation: 'A VPN creates a private, encrypted connection over a public network.' }
+  ],
+  'environmental-science': [
+    { question: 'Which gas is most responsible for the greenhouse effect?', options: ['Oxygen', 'Nitrogen', 'Carbon dioxide', 'Argon'], correct: 2, explanation: 'Carbon dioxide is a primary greenhouse gas driving climate change.' },
+    { question: 'What is biodiversity?', options: ['The variety of life in an ecosystem', 'The study of rocks', 'The process of photosynthesis', 'The amount of water in an area'], correct: 0, explanation: 'Biodiversity refers to the biological variety and variability of life on Earth.' }
   ]
 };
 
 const SUPPORTED_SUBJECTS = [
-  'Biology',
+  'All Topics',
   'Physics',
   'Chemistry',
   'Mathematics',
@@ -695,7 +743,7 @@ const SUPPORTED_SUBJECTS = [
 ];
 
 const DEFAULT_STUDY_CONTEXT = {
-  subject: 'Biology',
+  subject: 'All Topics',
   topic: 'General',
   difficulty: 'Intermediate'
 };

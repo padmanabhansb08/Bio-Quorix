@@ -114,7 +114,7 @@ app.post('/api/quiz/record', authenticateToken, (req, res) => {
         score,
         totalQuestions,
         correctAnswers,
-        subject = 'Biology',
+        subject = 'All Topics',
         topic = 'General',
         difficulty = 'Intermediate'
     } = req.body;
@@ -134,7 +134,7 @@ app.post('/api/flashcards/sync', authenticateToken, (req, res) => {
     const {
         topicId,
         cards,
-        subject = 'Biology',
+        subject = 'All Topics',
         topic = 'General',
         difficulty = 'Intermediate'
     } = req.body;
@@ -176,7 +176,7 @@ app.post('/api/flashcards/sync', authenticateToken, (req, res) => {
 app.post('/api/ai/generate', authenticateToken, async (req, res) => {
     const {
         prompt,
-        subject = 'Biology',
+        subject = 'All Topics',
         topic = 'General',
         difficulty = 'Intermediate'
     } = req.body;
@@ -195,20 +195,37 @@ Keep answers accurate, student-friendly, and focused on the selected subject.
 Student request:
 ${prompt}`;
     try {
-        const response = await fetch(process.env.OLLAMA_URL, {
+        const apiKey = process.env.GROQ_API_KEY;
+        if (!apiKey) {
+            throw new Error('GROQ_API_KEY is not configured in .env');
+        }
+
+        const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${apiKey}`
+            },
             body: JSON.stringify({
-                model: 'llama3',
-                prompt: studyPrompt,
-                stream: false
+                model: process.env.AI_MODEL || 'llama-3.3-70b-versatile',
+                messages: [
+                    { role: 'system', content: studyPrompt },
+                    { role: 'user', content: prompt }
+                ],
+                temperature: 0.7
             })
         });
 
-        if (!response.ok) throw new Error('Ollama connection failed');
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('Groq API Error:', errorText);
+            throw new Error('AI service connection failed');
+        }
+
         const data = await response.json();
-        res.json({ response: data.response });
+        res.json({ response: data.choices[0].message.content });
     } catch (err) {
+        console.error('Generation error:', err);
         res.status(500).json({ error: err.message });
     }
 });

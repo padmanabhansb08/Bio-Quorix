@@ -67,13 +67,13 @@ function addColumnIfMissing(table, column, definition) {
 
 // Safe additive migrations for the multi-subject QUORIX upgrade.
 addColumnIfMissing('quiz_history', 'user_id', 'INTEGER');
-addColumnIfMissing('quiz_history', 'subject', "TEXT DEFAULT 'Biology'");
+addColumnIfMissing('quiz_history', 'subject', "TEXT DEFAULT 'All Topics'");
 addColumnIfMissing('quiz_history', 'topic', "TEXT DEFAULT 'General'");
 addColumnIfMissing('quiz_history', 'difficulty', "TEXT DEFAULT 'Intermediate'");
 addColumnIfMissing('quiz_history', 'created_at', 'TEXT');
 
 addColumnIfMissing('flashcards', 'user_id', 'INTEGER');
-addColumnIfMissing('flashcards', 'subject', "TEXT DEFAULT 'Biology'");
+addColumnIfMissing('flashcards', 'subject', "TEXT DEFAULT 'All Topics'");
 addColumnIfMissing('flashcards', 'topic', "TEXT DEFAULT 'General'");
 addColumnIfMissing('flashcards', 'difficulty', "TEXT DEFAULT 'Intermediate'");
 addColumnIfMissing('flashcards', 'question', 'TEXT');
