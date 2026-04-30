@@ -1,85 +1,49 @@
-# BioQuorix
+# Quorix AI - Multi-Subject AI Learning Platform
 
-BioQuorix is a browser-based biotechnology learning assistant built as a single-page web app. It combines guided lesson generation, quizzes, flashcards, analytics, and an AI tutor into one local-first study experience for school and university learners.
+Quorix AI is a Node.js, SQLite, HTML/CSS/JavaScript learning platform with a local Ollama-powered AI tutor. It supports subject-aware lessons, quizzes, flashcards, study notes, activity tracking, and authenticated user profiles.
 
-The runnable app lives in [`bio qurix/`](./bio%20qurix/).
+## Features
 
-## What it does
+- JWT signup/login and user profile storage
+- Subject, topic, and difficulty selection saved in localStorage
+- Quorix AI Tutor through local Ollama
+- AI-generated lessons, quizzes, flashcards, and study notes
+- Quiz history, flashcards, activity logging, XP, and progress analytics
+- Safe SQLite migrations that preserve existing users and learning data
 
-- Personalized onboarding for school-level and university-level biotech learners
-- Diagnostic quiz to estimate weak areas and shape the study path
-- Topic-based lesson modules with optional AI generation through Ollama
-- Quiz engine with explanations, score tracking, and progress history
-- Flashcard decks with spaced-repetition style review scheduling
-- AI tutor chat with selectable personas and local model switching
-- Analytics dashboard with charts, strengths, weaknesses, streaks, XP, and leaderboard
-- Local profile storage with export options and no external database requirement
+## Supported Subjects
 
-## Tech stack
+Biology, Physics, Chemistry, Mathematics, Computer Science, English, History, Geography, Economics, Commerce, Accounting, Political Science, Psychology, Sociology, Environmental Science, General Knowledge, and Exam Preparation.
 
-- HTML, CSS, and vanilla JavaScript
-- Node.js static server
-- Chart.js for analytics charts
-- Marked for markdown rendering
-- Canvas Confetti for celebratory UI feedback
-- Optional Ollama integration at `http://localhost:11434`
+## Setup
 
-## Project layout
+```bash
+npm install
+npm start
+```
+
+Open the app at:
 
 ```text
-.
-+-- bio qurix/
-|   +-- public/
-|   |   +-- index.html
-|   |   +-- css/style.css
-|   |   +-- js/app.js
-|   |   +-- js/data.js
-|   |   +-- assets/logo.jpg
-|   +-- server.js
-|   +-- README.md
+http://localhost:8000
 ```
 
-## Run locally
+## Ollama Requirement
 
-1. Open a terminal in the repo root.
-2. Move into the app folder:
+Install and run Ollama locally, then make sure the `llama3` model is available:
 
-```powershell
-cd "bio qurix"
+```bash
+ollama run llama3
 ```
 
-3. Start the local server:
+## Environment Variables
 
-```powershell
-node server.js
+Create a `.env` file from `.env.example` and set:
+
+```text
+PORT=8000
+JWT_SECRET=your_secret_here
+OLLAMA_URL=http://localhost:11434/api/generate
 ```
 
-4. Open `http://localhost:8000/` in your browser.
-
-There is no `package.json` setup in this repo right now, so no dependency install step is required for the current server.
-
-## Optional Ollama setup
-
-BioQuorix can run with built-in fallback content, but the AI-powered lesson, quiz, chat, and flashcard features work best when Ollama is running locally.
-
-1. Install Ollama on your machine.
-2. Start Ollama so the API is available at `http://localhost:11434`.
-3. Pull one of the models supported by the UI, for example:
-
-```powershell
-ollama pull gemma2:9b
-```
-
-You can switch models from inside the app. The current UI includes options such as `gemma2:9b`, `gemma4`, `llama3`, and `mistral`.
-
-## Data and persistence
-
-- User accounts and progress are stored in browser `localStorage`
-- Quiz results, flashcards, XP, and activity history stay on the local device
-- Export actions are available from the UI for notes and user data
-
-## Notes
-
-- This project currently uses local-only storage and demo-style authentication
-- If Ollama is unavailable, several features fall back to bundled content, while some AI generation paths may be limited
-- The repository is currently organized with the actual app inside the `bio qurix/` folder
+Do not commit `.env`, database files, or `node_modules`.
