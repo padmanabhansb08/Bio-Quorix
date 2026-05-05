@@ -31,8 +31,34 @@ const APP_STATE = {
         subject: localStorage.getItem('selectedSubject') || 'All Topics',
         topic: localStorage.getItem('selectedTopic') || 'General',
         difficulty: localStorage.getItem('selectedDifficulty') || 'Intermediate'
-    }
+    },
+    isProcessing: false
 };
+
+// ===== LOADER CONTROLS =====
+function showGlobalLoader(text = 'Processing...', progress = 0) {
+    const loader = document.getElementById('global-loader');
+    const loaderText = document.getElementById('loader-text');
+    const fill = document.getElementById('loader-progress-fill');
+    
+    if (loader) loader.classList.remove('hidden');
+    if (loaderText) loaderText.textContent = text;
+    if (fill) fill.style.width = `${progress}%`;
+    APP_STATE.isProcessing = true;
+}
+
+function updateGlobalLoader(text, progress) {
+    const loaderText = document.getElementById('loader-text');
+    const fill = document.getElementById('loader-progress-fill');
+    if (loaderText && text) loaderText.textContent = text;
+    if (fill && progress !== undefined) fill.style.width = `${progress}%`;
+}
+
+function hideGlobalLoader() {
+    const loader = document.getElementById('global-loader');
+    if (loader) loader.classList.add('hidden');
+    APP_STATE.isProcessing = false;
+}
 
 // ===== INITIALIZATION =====
 document.addEventListener('DOMContentLoaded', async () => {
@@ -281,6 +307,7 @@ async function handleLogin(e) {
     const password = document.getElementById('loginPassword').value;
 
     try {
+        showGlobalLoader('Authenticating Neural Node...', 40);
         const response = await fetch(`${API_BASE}/api/auth/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -290,6 +317,7 @@ async function handleLogin(e) {
         const data = await response.json();
 
         if (response.ok) {
+            updateGlobalLoader('Decrypting Profile Data...', 80);
             AUTH_TOKEN = data.token;
             localStorage.setItem('bionexus_token', AUTH_TOKEN);
             APP_STATE.currentUser = data.user;
@@ -297,15 +325,19 @@ async function handleLogin(e) {
             showToast('Welcome back! 👋', '✅');
 
             if (!APP_STATE.currentUser.setupComplete) {
+                hideGlobalLoader();
                 navigateTo('setup');
             } else {
                 await loadUserFullProfile();
+                hideGlobalLoader();
                 navigateTo('dashboard');
             }
         } else {
+            hideGlobalLoader();
             showToast(data.error || 'Login failed', '❌');
         }
     } catch (err) {
+        hideGlobalLoader();
         showToast('Server error. Is the backend running?', '❌');
     }
 }
