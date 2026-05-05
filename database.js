@@ -60,6 +60,13 @@ db.exec(`
         subscription TEXT NOT NULL,
         FOREIGN KEY (user_email) REFERENCES users(email)
     );
+
+    -- Performance Indexes
+    CREATE INDEX IF NOT EXISTS idx_activity_email ON activity(user_email);
+    CREATE INDEX IF NOT EXISTS idx_quiz_history_email ON quiz_history(user_email);
+    CREATE INDEX IF NOT EXISTS idx_flashcards_email ON flashcards(user_email);
+    CREATE INDEX IF NOT EXISTS idx_flashcards_topic ON flashcards(topic_id);
+    CREATE INDEX IF NOT EXISTS idx_push_email ON push_subscriptions(user_email);
 `);
 
 function columnExists(table, column) {

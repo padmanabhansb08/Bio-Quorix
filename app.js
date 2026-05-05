@@ -9,6 +9,9 @@ const cron = require('node-cron');
 const PDFDocument = require('pdfkit');
 const { Resend } = require('resend');
 const webpush = require('web-push');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
+const morgan = require('morgan');
 const fetch = (...args) => import('node-fetch').then(({ default: fetch }) => fetch(...args));
 
 const app = express();
@@ -29,8 +32,33 @@ if (vapidPublicKey && vapidPrivateKey) {
     console.warn('VAPID keys not configured. Web push notifications will not work.');
 }
 
+// --- Security & Logging Middleware ---
+app.use(helmet({
+    contentSecurityPolicy: {
+        directives: {
+            ...helmet.contentSecurityPolicy.getDefaultDirectives(),
+            "script-src": ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://cdn.jsdelivr.net"],
+            "img-src": ["'self'", "data:", "https:", "http:"],
+            "connect-src": ["'self'", "https://api.groq.com", "https://api.resend.com"]
+        }
+    }
+}));
+
+const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 100, // Limit each IP to 100 requests per windowMs
+    message: { error: 'Too many requests from this IP, please try again after 15 minutes' }
+});
+app.use('/api/', limiter);
+
+app.use(morgan('combined'));
 app.use(cors());
 app.use(express.json());
+
+// Health check endpoint for monitoring
+app.get('/health', (req, res) => {
+    res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
 
 // Automated Weekly Reports
 cron.schedule('0 9 * * 0', async () => {
@@ -375,6 +403,17 @@ ${prompt}`;
         console.error('Generation error:', err);
         res.status(500).json({ error: err.message });
     }
+});
+
+// --- Global Error Handler ---
+app.use((err, req, res, next) => {
+    console.error(`[Error] ${err.stack}`);
+    const statusCode = err.statusCode || 500;
+    res.status(statusCode).json({
+        error: process.env.NODE_ENV === 'production' 
+            ? 'Internal Server Error' 
+            : err.message
+    });
 });
 
 app.listen(PORT, () => {

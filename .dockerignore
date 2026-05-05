@@ -1,0 +1,8 @@
+node_modules
+npm-debug.log
+.env
+.git
+.vscode
+*.db
+*.sqlite
+frontend/node_modules
