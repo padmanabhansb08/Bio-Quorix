@@ -415,43 +415,47 @@
   <div id="page-dashboard" class="page hidden">
     <div class="app-layout">
       <!-- Sidebar -->
-      <aside class="sidebar">
-        <div class="sidebar-section-title">📌 Main</div>
-        <ul class="sidebar-nav">
-          <li><a href="#" class="active" onclick="showDashboardSection('overview')" id="nav-overview"><span
-                class="nav-icon">📊</span> Overview</a></li>
-          <li><a href="#" onclick="showDashboardSection('learn')" id="nav-learn"><span class="nav-icon">📖</span>
-              Learn</a></li>
-          <li><a href="#" onclick="showDashboardSection('quiz')" id="nav-quiz"><span class="nav-icon">📝</span>
-              Quizzes</a></li>
-          <li><a href="#" onclick="showDashboardSection('flashcards')" id="nav-flashcards"><span
-                class="nav-icon">📇</span> Flashcards</a></li>
-          <li><a href="#" onclick="showDashboardSection('notes')" id="nav-notes"><span class="nav-icon">NT</span> Study Notes</a></li>
-          <li><a href="#" onclick="showDashboardSection('chat')" id="nav-chat"><span class="nav-icon">💬</span> AI
-              Tutor</a></li>
-        </ul>
-        <div class="sidebar-section-title">🚀 Progress</div>
-        <ul class="sidebar-nav">
-          <li><a href="#" onclick="showDashboardSection('path')" id="nav-path"><span class="nav-icon">🗺️</span>
-              Learning Path</a></li>
-          <li><a href="#" onclick="showDashboardSection('analytics')" id="nav-analytics"><span
-                class="nav-icon">📈</span> Analytics</a></li>
-          <li><a href="#" onclick="showDashboardSection('leaderboard')" id="nav-leaderboard"><span
-                class="nav-icon">🏆</span> Leaderboard</a></li>
-        </ul>
-        </ul>
+      <aside class="sidebar" id="appSidebar">
+        <button class="sidebar-toggle-btn" id="sidebarToggleBtn" onclick="toggleSidebar()" title="Collapse Sidebar">
+          <span id="sidebarToggleArrow">◀</span>
+        </button>
+        <div class="sidebar-inner">
+          <div class="sidebar-section-title">📌 Main</div>
+          <ul class="sidebar-nav">
+            <li><a href="#" class="active" onclick="showDashboardSection('overview')" id="nav-overview"><span
+                  class="nav-icon">📊</span> Overview</a></li>
+            <li><a href="#" onclick="showDashboardSection('learn')" id="nav-learn"><span class="nav-icon">📖</span>
+                Learn</a></li>
+            <li><a href="#" onclick="showDashboardSection('quiz')" id="nav-quiz"><span class="nav-icon">📝</span>
+                Quizzes</a></li>
+            <li><a href="#" onclick="showDashboardSection('flashcards')" id="nav-flashcards"><span
+                  class="nav-icon">📇</span> Flashcards</a></li>
+            <li><a href="#" onclick="showDashboardSection('notes')" id="nav-notes"><span class="nav-icon">NT</span> Study Notes</a></li>
+            <li><a href="#" onclick="showDashboardSection('chat')" id="nav-chat"><span class="nav-icon">💬</span> AI
+                Tutor</a></li>
+          </ul>
+          <div class="sidebar-section-title">🚀 Progress</div>
+          <ul class="sidebar-nav">
+            <li><a href="#" onclick="showDashboardSection('path')" id="nav-path"><span class="nav-icon">🗺️</span>
+                Learning Path</a></li>
+            <li><a href="#" onclick="showDashboardSection('analytics')" id="nav-analytics"><span
+                  class="nav-icon">📈</span> Analytics</a></li>
+            <li><a href="#" onclick="showDashboardSection('leaderboard')" id="nav-leaderboard"><span
+                  class="nav-icon">🏆</span> Leaderboard</a></li>
+          </ul>
 
-        <!-- User Card at bottom -->
-        <div style="margin-top:auto; padding-top:16px; border-top:1px solid var(--border-color);">
-          <div style="display:flex; align-items:center; gap:12px;">
-            <div
-              style="width:36px;height:36px;border-radius:50%;background:var(--gradient-primary);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.9rem;"
-              id="sidebarAvatar">S</div>
-            <div>
-              <div style="font-weight:600;font-size:0.9rem;" id="sidebarName">Student</div>
-              <div style="font-size:0.75rem;color:var(--text-muted);" id="sidebarLevel">School Level</div>
-              <div style="font-size:0.75rem;color:var(--primary-500);font-weight:700;margin-top:2px;" id="sidebarXp">✨ 0
-                XP</div>
+          <!-- User Card at bottom -->
+          <div style="margin-top:auto; padding-top:16px; border-top:1px solid var(--border-color);">
+            <div style="display:flex; align-items:center; gap:12px;">
+              <div
+                style="width:36px;height:36px;border-radius:50%;background:var(--gradient-primary);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.9rem;"
+                id="sidebarAvatar">S</div>
+              <div>
+                <div style="font-weight:600;font-size:0.9rem;" id="sidebarName">Student</div>
+                <div style="font-size:0.75rem;color:var(--text-muted);" id="sidebarLevel">School Level</div>
+                <div style="font-size:0.75rem;color:var(--primary-500);font-weight:700;margin-top:2px;" id="sidebarXp">✨ 0
+                  XP</div>
+              </div>
             </div>
           </div>
         </div>
@@ -720,6 +724,13 @@
                 </div>
               </div>
               <div style="display:flex; align-items:center; gap:8px;">
+                <button id="voiceToggleBtn" class="btn btn-ghost btn-sm" onclick="toggleVoiceAssistant()" style="padding:4px 8px; border-radius:8px;" title="Toggle Voice Assistant">
+                  <span id="voiceToggleIcon" style="font-size:1.2rem;">🔇</span>
+                </button>
+                <div style="position:relative; width:80px; height:60px; border-radius:8px; overflow:hidden; border:1px solid var(--border-color); background:#000;">
+                  <video id="emotionVideo" autoplay muted playsinline style="object-fit:cover; width:100%; height:100%;"></video>
+                  <div id="emotionLabel" style="position:absolute; bottom:0; left:0; width:100%; text-align:center; background:rgba(0,0,0,0.6); color:white; font-size:0.65rem; padding:2px 0; font-weight:bold;">Detecting...</div>
+                </div>
                 <span style="font-size:0.75rem; color:var(--text-muted); font-weight:500;">Persona:</span>
                 <select class="form-input"
                   style="padding:4px 8px; font-size:0.8rem; width:auto; height:auto; border-radius:8px; border:1px solid var(--border-color); background:var(--bg-secondary);"
@@ -738,10 +749,13 @@
                   would you like to learn about?</div>
               </div>
             </div>
-            <div class="chat-input-area">
+            <div class="chat-input-area" style="display:flex; gap:8px; align-items:center;">
+              <button id="micBtn" class="btn btn-secondary btn-icon" onclick="toggleSpeechToText()" style="border-radius:50%; width:44px; height:44px; flex-shrink:0;" title="Dictate Message">
+                <span id="micIcon">🎤</span>
+              </button>
               <input type="text" class="form-input" id="chatInput" placeholder="Ask a question about your selected subject..."
-                onkeydown="if(event.key==='Enter') sendChatMessage()">
-              <button class="btn btn-primary btn-icon" onclick="sendChatMessage()" style="border-radius:50%;">➤</button>
+                onkeydown="if(event.key==='Enter') sendChatMessage()" style="flex:1;">
+              <button class="btn btn-primary btn-icon" onclick="sendChatMessage()" style="border-radius:50%; width:44px; height:44px; flex-shrink:0;">➤</button>
             </div>
           </div>
         </div>
@@ -1001,6 +1015,8 @@
 
   <!-- Confetti Animation Library -->
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <!-- Face API for Emotion Detection -->
+  <script defer src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.12/dist/face-api.js"></script>
   <script src="js/data.js"></script>
   <script src="js/app.js"></script>
 </body>

@@ -124,7 +124,6 @@ body {
   color: var(--text-primary);
   line-height: 1.5;
   overflow-x: hidden;
-  transition: background-color var(--transition-slow), color var(--transition-slow);
   -webkit-font-smoothing: antialiased;
 }
 
@@ -767,13 +766,68 @@ a:hover {
   bottom: 0;
   background: var(--bg-secondary);
   border-right: 1px solid var(--border-color);
-  padding: var(--space-lg);
+  padding: 0;
+  z-index: 50;
+  overflow: visible;
+  transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1), 
+              box-shadow 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+              background-color var(--transition-slow), 
+              border-color var(--transition-slow);
+}
+
+.sidebar.collapsed {
+  transform: translateX(-260px);
+  box-shadow: none;
+}
+
+.sidebar-inner {
   display: flex;
   flex-direction: column;
   gap: var(--space-sm);
+  padding: var(--space-lg);
   overflow-y: auto;
-  z-index: 50;
-  transition: background-color var(--transition-slow), border-color var(--transition-slow);
+  height: 100%;
+}
+
+/* Toggle Button */
+.sidebar-toggle-btn {
+  position: absolute;
+  top: 50%;
+  right: -20px;
+  transform: translateY(-50%);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 60;
+  font-size: 1rem;
+  transition: background 0.2s ease, color 0.2s ease, transform 0.35s cubic-bezier(0.4, 0, 0.2, 1), right 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: var(--shadow-md);
+}
+
+.sidebar-toggle-btn:hover {
+  background: var(--primary-500);
+  color: #fff;
+  border-color: var(--primary-500);
+}
+
+.sidebar.collapsed .sidebar-toggle-btn {
+  right: -60px;
+}
+
+#sidebarToggleArrow {
+  display: inline-block;
+  transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.sidebar.collapsed #sidebarToggleArrow {
+  transform: rotate(180deg);
 }
 
 .sidebar-nav {
@@ -827,6 +881,11 @@ a:hover {
   flex: 1;
   margin-left: 260px;
   padding: var(--space-xl);
+  transition: margin-left 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.main-content.expanded {
+  margin-left: 0;
 }
 
 /* ---- Dashboard Cards ---- */
@@ -2108,4 +2167,21 @@ a:hover {
   border-radius: 50%;
   border-top-color: #fff;
   animation: spin 1s ease-in-out infinite;
+}
+
+/* ---- Wave Theme Transition Overlay ---- */
+.theme-wave-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 99999;
+  pointer-events: none;
+  clip-path: circle(0px at var(--wave-x, 50%) var(--wave-y, 50%));
+  transition: clip-path 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.theme-wave-overlay.expanding {
+  clip-path: circle(150% at var(--wave-x, 50%) var(--wave-y, 50%));
 }

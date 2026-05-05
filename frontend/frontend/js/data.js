@@ -812,7 +812,7 @@ Suggest the next 3 topics to study from this list: ${JSON.stringify(BIOTECH_TOPI
 Return ONLY a JSON array:
 [{"topic": "Topic Name", "reason": "Brief reason"}, ...]`,
 
-  chatResponse: (question, level, context, history = [], personality = 'emoji') => {
+  chatResponse: (question, level, context, history = [], personality = 'emoji', emotion = 'neutral') => {
     let personalityInstruction = "";
     if (personality === 'professor') {
       personalityInstruction = `PERSONA: You are a distinguished University Professor. 
@@ -843,6 +843,13 @@ ${history && history.length > 0 ? `Recent conversation history:
 ${history.map(h => `${h.role === 'user' ? 'Student' : 'Tutor'}: ${h.content}`).join('\n')}` : ''}
 
 Student's newest question: "${question}"
+
+The student's current detected facial expression/emotion is: **${emotion}**.
+ADAPT YOUR TEACHING STYLE to this emotion:
+- If they look confused or sad, be extra encouraging, break down concepts simpler, and reassure them.
+- If they look neutral, maintain a steady, clear, and engaging pace.
+- If they look happy or surprised, match their enthusiasm and dive into exciting facts!
+- If they look angry or frustrated, be extremely patient, apologize for any difficulty, and try a completely different analogy.
 
 Rules:
 - Vary your opening based on your persona.
@@ -934,7 +941,7 @@ Rules:
 - correct is the index (0-3) of the right option.
 - Keep explanations concise.`;
 
-PROMPT_TEMPLATES.chatResponse = (question, level, context, history = [], personality = 'emoji', studyContext = DEFAULT_STUDY_CONTEXT) => `You are Quorix AI, an expert educational tutor.
+PROMPT_TEMPLATES.chatResponse = (question, level, context, history = [], personality = 'emoji', studyContext = DEFAULT_STUDY_CONTEXT, emotion = 'neutral') => `You are Quorix AI, an expert educational tutor.
 The student is studying: ${studyContext.subject}
 Topic: ${studyContext.topic || context || 'General'}
 Difficulty level: ${studyContext.difficulty}
@@ -945,6 +952,13 @@ ${history && history.length > 0 ? `Recent conversation history:
 ${history.map(h => `${h.role === 'user' ? 'Student' : 'Tutor'}: ${h.content}`).join('\n')}` : ''}
 
 Student's newest question: "${question}"
+
+The student's current detected facial expression/emotion is: **${emotion}**.
+ADAPT YOUR TEACHING STYLE to this emotion:
+- If they look confused or sad, be extra encouraging, break down concepts simpler, and reassure them.
+- If they look neutral, maintain a steady, clear, and engaging pace.
+- If they look happy or surprised, match their enthusiasm and dive into exciting facts!
+- If they look angry or frustrated, be extremely patient, apologize for any difficulty, and try a completely different analogy.
 
 Explain clearly and step by step.
 Use examples suitable for the selected subject.

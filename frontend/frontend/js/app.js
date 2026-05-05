@@ -111,6 +111,7 @@ function navigateTo(page) {
     if (page === 'dashboard') {
         showDashboardSection('overview');
         updateDashboardData();
+        restoreSidebarState();
     }
 }
 
@@ -805,6 +806,122 @@ function showDashboardSection(section) {
     if (section === 'notes') updateNotesContext();
     if (section === 'leaderboard') renderLeaderboard();
     if (section === 'profile') loadProfileData();
+
+    if (section === 'chat') {
+        if (typeof initFaceRecognition === 'function') initFaceRecognition();
+    } else {
+        if (typeof stopFaceRecognition === 'function') stopFaceRecognition();
+    }
+}
+
+// ===== SIDEBAR TRAY TOGGLE =====
+function toggleSidebar() {
+    const sidebar = document.getElementById('appSidebar');
+    const mainContent = document.querySelector('.main-content');
+    
+    if (!sidebar || !mainContent) return;
+    
+    const isCollapsed = sidebar.classList.toggle('collapsed');
+    mainContent.classList.toggle('expanded', isCollapsed);
+    
+    // Save state
+    localStorage.setItem('quorix_sidebar_collapsed', isCollapsed ? '1' : '0');
+}
+
+// Restore sidebar state on load
+function restoreSidebarState() {
+    const collapsed = localStorage.getItem('quorix_sidebar_collapsed') === '1';
+    if (collapsed) {
+        const sidebar = document.getElementById('appSidebar');
+        const mainContent = document.querySelector('.main-content');
+        if (sidebar) sidebar.classList.add('collapsed');
+        if (mainContent) mainContent.classList.add('expanded');
+    }
+}
+
+// Face AI Logic
+const FACE_AI_STATE = {
+    initialized: false,
+    video: null,
+    interval: null,
+    label: null
+};
+
+async function initFaceRecognition() {
+    if (FACE_AI_STATE.initialized || !window.faceapi) return;
+    
+    FACE_AI_STATE.video = document.getElementById('emotionVideo');
+    FACE_AI_STATE.label = document.getElementById('emotionLabel');
+    if (!FACE_AI_STATE.video) return;
+
+    try {
+        if(FACE_AI_STATE.label) FACE_AI_STATE.label.textContent = "Loading Models...";
+        await Promise.all([
+            faceapi.nets.tinyFaceDetector.loadFromUri('https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.12/model/'),
+            faceapi.nets.faceExpressionNet.loadFromUri('https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.12/model/')
+        ]);
+
+        if(FACE_AI_STATE.label) FACE_AI_STATE.label.textContent = "Starting Camera...";
+        const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 320, height: 240 } });
+        FACE_AI_STATE.video.srcObject = stream;
+        
+        FACE_AI_STATE.video.addEventListener('play', () => {
+            if(FACE_AI_STATE.label) FACE_AI_STATE.label.textContent = "Detecting...";
+            
+            let negativeEmotionStreak = 0;
+            const EMOTION_COOLDOWN = 20000; // Only trigger once every 20s
+            let lastInterventionTime = 0;
+
+            FACE_AI_STATE.interval = setInterval(async () => {
+                const detections = await faceapi.detectSingleFace(
+                    FACE_AI_STATE.video, 
+                    new faceapi.TinyFaceDetectorOptions({ inputSize: 512, scoreThreshold: 0.3 })
+                ).withFaceExpressions();
+                if (detections) {
+                    const expressions = detections.expressions;
+                    const maxEmotion = Object.keys(expressions).reduce((a, b) => expressions[a] > expressions[b] ? a : b);
+                    const confidence = expressions[maxEmotion];
+                    
+                    // Only accept detections with >40% confidence for more accurate reads
+                    if (confidence > 0.4) {
+                        if(FACE_AI_STATE.label) FACE_AI_STATE.label.textContent = `${maxEmotion.charAt(0).toUpperCase() + maxEmotion.slice(1)} ${Math.round(confidence * 100)}%`;
+                        APP_STATE.currentEmotion = maxEmotion;
+                    }
+
+                    if (['sad', 'angry', 'fearful', 'disgusted'].includes(maxEmotion)) {
+                        negativeEmotionStreak++;
+                    } else {
+                        negativeEmotionStreak = 0;
+                    }
+
+                    // If user looks confused/sad for 3 seconds continuously, proactively intervene
+                    if (negativeEmotionStreak >= 3 && (Date.now() - lastInterventionTime) > EMOTION_COOLDOWN) {
+                        lastInterventionTime = Date.now();
+                        negativeEmotionStreak = 0;
+                        triggerProactiveIntervention(maxEmotion);
+                    }
+                } else {
+                    if(FACE_AI_STATE.label) FACE_AI_STATE.label.textContent = "No face";
+                    APP_STATE.currentEmotion = "neutral";
+                    negativeEmotionStreak = 0;
+                }
+            }, 1000);
+        });
+
+        FACE_AI_STATE.initialized = true;
+    } catch (err) {
+        console.error("Face Recognition Error: ", err);
+        if(FACE_AI_STATE.label) FACE_AI_STATE.label.textContent = "Camera Error";
+    }
+}
+
+function stopFaceRecognition() {
+    if (FACE_AI_STATE.interval) clearInterval(FACE_AI_STATE.interval);
+    if (FACE_AI_STATE.video && FACE_AI_STATE.video.srcObject) {
+        FACE_AI_STATE.video.srcObject.getTracks().forEach(track => track.stop());
+        FACE_AI_STATE.video.srcObject = null;
+    }
+    FACE_AI_STATE.initialized = false;
 }
 
 // Cache DOM elements for dashboard data to improve rendering efficiency
@@ -1091,7 +1208,7 @@ async function openModule(topicId) {
     speechBtn.className = 'btn btn-ghost btn-sm';
     speechBtn.style.marginBottom = '16px';
     speechBtn.innerHTML = '🔊 Read Aloud';
-    speechBtn.onclick = () => speakText(lesson.replace(/<[^>]*>?/gm, ''));
+    speechBtn.onclick = () => speakText(lesson, true);
     contentEl.insertBefore(speechBtn, contentEl.firstChild);
 
     // Log activity
@@ -1707,7 +1824,7 @@ async function sendChatMessage() {
             // Only keep last 6 messages (3 turns) for context to avoid huge prompts
             const history = APP_STATE.chatHistory.slice(-6);
             const personality = APP_STATE.tutorPersonality || 'emoji';
-            const prompt = PROMPT_TEMPLATES.chatResponse(message, user.level, context, history, personality, studyContext);
+            const prompt = PROMPT_TEMPLATES.chatResponse(message, user.level, context, history, personality, studyContext, APP_STATE.currentEmotion || 'neutral');
             response = await callAI(prompt, { ...studyContext, topic: context || studyContext.topic });
 
             if (response && !response.includes('**AI Connection Error')) {
@@ -1733,11 +1850,195 @@ async function sendChatMessage() {
     `;
     }
     container.scrollTop = container.scrollHeight;
+    
+    // Speak the response if TTS is enabled
+    if (typeof speakText === 'function') speakText(response);
 
     // Log activity via backend
     await logActivity('chat', `Asked AI: "${message.substring(0, 50)}${message.length > 50 ? '...' : ''}"`);
     await saveCurrentUser();
     await addXP(2, 'Curiosity');
+}
+
+async function triggerProactiveIntervention(emotion) {
+    const container = document.getElementById('chatMessages');
+    if (!container) return;
+    
+    const typingId = 'typing-' + Date.now();
+    container.innerHTML += `
+    <div class="chat-message ai" id="${typingId}">
+      <div class="chat-avatar">🧬</div>
+      <div class="chat-bubble" style="display:flex;align-items:center;gap:8px;">
+        <div class="spinner" style="width:18px;height:18px;border-width:2px;"></div>
+        Adapting to your expression...
+      </div>
+    </div>
+  `;
+    container.scrollTop = container.scrollHeight;
+
+    const studyContext = getSelectedStudyContext();
+    const prompt = `The student currently looks ${emotion}. Act proactively. Briefly ask if they are stuck on ${studyContext.topic}, offer a simpler analogy, or just give an encouraging word. Keep it strictly to 2 sentences. Don't mention their face directly, just respond to their struggle.`;
+    
+    let response = await callAI(prompt, studyContext);
+    if (!response || response.includes('**AI Connection Error')) {
+        response = "You seem a bit stuck! Let's take a deep breath. Can I explain this in a simpler way for you?";
+    }
+
+    const typingEl = document.getElementById(typingId);
+    if (typingEl) {
+        typingEl.innerHTML = `
+      <div class="chat-avatar">🧬</div>
+      <div class="chat-bubble" style="border: 1px solid var(--primary-500); background: rgba(16,185,129,0.05);">${formatMarkdown(response)}</div>
+    `;
+    }
+    container.scrollTop = container.scrollHeight;
+    
+    if (typeof speakText === 'function') speakText(response);
+}
+
+// ===== VOICE & SPEECH =====
+const VOICE_STATE = {
+    enabled: false,
+    synth: window.speechSynthesis,
+    utterance: null
+};
+
+function toggleVoiceAssistant() {
+    VOICE_STATE.enabled = !VOICE_STATE.enabled;
+    const icon = document.getElementById('voiceToggleIcon');
+    if (VOICE_STATE.enabled) {
+        icon.textContent = '🔊';
+        showToast('Voice Assistant Enabled', '🔊');
+    } else {
+        icon.textContent = '🔇';
+        if (VOICE_STATE.synth && VOICE_STATE.synth.speaking) VOICE_STATE.synth.cancel();
+        showToast('Voice Assistant Disabled', '🔇');
+    }
+}
+
+function speakText(text, force = false) {
+    if (!('speechSynthesis' in window)) return;
+    if (!force && (!VOICE_STATE.enabled || !VOICE_STATE.synth)) return;
+    
+    if (window.speechSynthesis.speaking) window.speechSynthesis.cancel();
+    
+    // Aggressively strip everything except alphabets and numbers
+    let cleanText = text
+        .replace(/```[\s\S]*?```/g, ' ')  // Replace code blocks
+        .replace(/<[^>]*>?/gm, ' ')       // Remove HTML tags
+        .replace(/[^a-zA-Z0-9\s]/g, ' ')  // Keep ONLY alphabets, numbers, and whitespace
+        .replace(/\s+/g, ' ')             // Collapse multiple spaces
+        .trim();
+    
+    if (!cleanText) return;
+    
+    const utterance = new SpeechSynthesisUtterance(cleanText);
+    utterance.rate = 1.0;
+    utterance.pitch = 1.0;
+    
+    const voices = window.speechSynthesis.getVoices();
+    const preferredVoice = voices.find(v => v.lang.includes('en') && (v.name.includes('Google') || v.name.includes('Natural') || v.name.includes('Female') || v.name.includes('Samantha')));
+    if (preferredVoice) utterance.voice = preferredVoice;
+
+    window.speechSynthesis.speak(utterance);
+}
+
+const SPEECH_RECOGNITION_STATE = {
+    recognition: null,
+    isListening: false,
+    silenceTimer: null,
+    hasReceivedSpeech: false
+};
+
+function initSpeechRecognition() {
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+        showToast('Speech recognition not supported in this browser.', '⚠️');
+        return;
+    }
+    
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    SPEECH_RECOGNITION_STATE.recognition = new SpeechRecognition();
+    SPEECH_RECOGNITION_STATE.recognition.continuous = false;
+    SPEECH_RECOGNITION_STATE.recognition.interimResults = true;
+    
+    SPEECH_RECOGNITION_STATE.recognition.onstart = function() {
+        SPEECH_RECOGNITION_STATE.isListening = true;
+        SPEECH_RECOGNITION_STATE.hasReceivedSpeech = false;
+        const micIcon = document.getElementById('micIcon');
+        if(micIcon) micIcon.innerHTML = '<span class="spinner" style="width:12px;height:12px;border-width:2px;border-top-color:var(--error);"></span>';
+        
+        // Start 4-second silence timeout
+        SPEECH_RECOGNITION_STATE.silenceTimer = setTimeout(() => {
+            if (!SPEECH_RECOGNITION_STATE.hasReceivedSpeech && SPEECH_RECOGNITION_STATE.isListening) {
+                showToast('No speech detected. Microphone turned off.', '🎤');
+                if (SPEECH_RECOGNITION_STATE.recognition) SPEECH_RECOGNITION_STATE.recognition.stop();
+            }
+        }, 4000);
+    };
+    
+    SPEECH_RECOGNITION_STATE.recognition.onresult = function(event) {
+        SPEECH_RECOGNITION_STATE.hasReceivedSpeech = true;
+        // Clear the silence timeout since speech was detected
+        if (SPEECH_RECOGNITION_STATE.silenceTimer) {
+            clearTimeout(SPEECH_RECOGNITION_STATE.silenceTimer);
+            SPEECH_RECOGNITION_STATE.silenceTimer = null;
+        }
+        
+        let interimTranscript = '';
+        let finalTranscript = '';
+
+        for (let i = event.resultIndex; i < event.results.length; ++i) {
+            if (event.results[i].isFinal) {
+                finalTranscript += event.results[i][0].transcript;
+            } else {
+                interimTranscript += event.results[i][0].transcript;
+            }
+        }
+        
+        const input = document.getElementById('chatInput');
+        if (finalTranscript) {
+            input.value = finalTranscript;
+        } else if (interimTranscript) {
+            input.value = interimTranscript;
+        }
+    };
+    
+    SPEECH_RECOGNITION_STATE.recognition.onerror = function(event) {
+        console.error("Speech recognition error", event.error);
+        stopSpeechRecognition();
+    };
+    
+    SPEECH_RECOGNITION_STATE.recognition.onend = function() {
+        stopSpeechRecognition();
+    };
+}
+
+function toggleSpeechToText() {
+    if (!SPEECH_RECOGNITION_STATE.recognition) {
+        initSpeechRecognition();
+    }
+    
+    if (SPEECH_RECOGNITION_STATE.isListening) {
+        SPEECH_RECOGNITION_STATE.recognition.stop();
+    } else {
+        document.getElementById('chatInput').value = '';
+        if (SPEECH_RECOGNITION_STATE.recognition) SPEECH_RECOGNITION_STATE.recognition.start();
+    }
+}
+
+function stopSpeechRecognition() {
+    SPEECH_RECOGNITION_STATE.isListening = false;
+    SPEECH_RECOGNITION_STATE.hasReceivedSpeech = false;
+    if (SPEECH_RECOGNITION_STATE.silenceTimer) {
+        clearTimeout(SPEECH_RECOGNITION_STATE.silenceTimer);
+        SPEECH_RECOGNITION_STATE.silenceTimer = null;
+    }
+    const micIcon = document.getElementById('micIcon');
+    if(micIcon) micIcon.innerHTML = '🎤';
+}
+
+if (window.speechSynthesis) {
+    window.speechSynthesis.onvoiceschanged = () => { if(VOICE_STATE.synth) VOICE_STATE.synth.getVoices(); };
 }
 
 function changeTutorPersonality(personality) {
@@ -2430,28 +2731,7 @@ function backToFlashcardDecks() {
 }
 
 // ===== VOICE INTERACTION =====
-let currentUtterance = null;
-function speakText(text) {
-    if (!('speechSynthesis' in window)) {
-        showToast('Text-to-speech not supported in this browser.', '⚠️');
-        return;
-    }
-
-    if (window.speechSynthesis.speaking) {
-        window.speechSynthesis.cancel(); // Stop if already playing
-    }
-
-    currentUtterance = new SpeechSynthesisUtterance(text);
-    currentUtterance.rate = 1.0;
-    currentUtterance.pitch = 1.0;
-
-    // Try to find a good English voice
-    const voices = window.speechSynthesis.getVoices();
-    const goodVoice = voices.find(v => v.lang.includes('en') && v.name.includes('Google') || v.name.includes('Samantha'));
-    if (goodVoice) currentUtterance.voice = goodVoice;
-
-    window.speechSynthesis.speak(currentUtterance);
-}
+// speakText function is defined above in the VOICE & SPEECH section
 
 // ===== EXPORT =====
 function exportNotes() {
@@ -2846,9 +3126,41 @@ function initScrollAnimations() {
 
 // ===== THEME MANAGEMENT =====
 function toggleTheme() {
-    APP_STATE.theme = APP_STATE.theme === 'dark' ? 'light' : 'dark';
-    localStorage.setItem('bionexus_theme', APP_STATE.theme);
-    applyTheme(APP_STATE.theme);
+    const btn = document.getElementById('themeToggle');
+    const rect = btn.getBoundingClientRect();
+    const x = rect.left + rect.width / 2;
+    const y = rect.top + rect.height / 2;
+
+    const newTheme = APP_STATE.theme === 'dark' ? 'light' : 'dark';
+
+    // Create overlay with the TARGET theme's colors
+    const overlay = document.createElement('div');
+    overlay.classList.add('theme-wave-overlay');
+    overlay.style.setProperty('--wave-x', x + 'px');
+    overlay.style.setProperty('--wave-y', y + 'px');
+
+    // Apply the target theme colors to the overlay
+    if (newTheme === 'light') {
+        overlay.style.background = '#ffffff';
+    } else {
+        overlay.style.background = '#09090b';
+    }
+
+    document.body.appendChild(overlay);
+
+    // Force reflow so the initial clip-path is applied
+    void overlay.offsetWidth;
+
+    // Expand the circle
+    overlay.classList.add('expanding');
+
+    // After the wave finishes, apply the real theme and remove overlay
+    overlay.addEventListener('transitionend', () => {
+        APP_STATE.theme = newTheme;
+        localStorage.setItem('bionexus_theme', newTheme);
+        applyTheme(newTheme);
+        overlay.remove();
+    }, { once: true });
 }
 
 function applyTheme(theme) {
