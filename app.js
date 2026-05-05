@@ -441,6 +441,58 @@ ${prompt}`;
     }
 });
 
+// --- Phase 2-3: Mount Feature Route Modules ---
+const { mountPracticeTestRoutes } = require('./routes/practiceTests');
+const { mountChallengeRoutes } = require('./routes/challenges');
+const { mountAnalyticsRoutes } = require('./routes/analytics');
+const { mountConceptRoutes } = require('./routes/concepts');
+
+const aiService = require('./services/aiService');
+mountPracticeTestRoutes(app, db, authenticateToken, aiService);
+mountChallengeRoutes(app, db, authenticateToken, aiService, cron);
+mountAnalyticsRoutes(app, db, authenticateToken);
+mountConceptRoutes(app, db, authenticateToken, aiService);
+
+// --- Offline Sync Endpoint (Phase 5.1) ---
+app.post('/api/sync/offline-reviews', authenticateToken, (req, res) => {
+    const { reviews } = req.body;
+    if (!reviews || !Array.isArray(reviews)) {
+        return res.status(400).json({ error: 'reviews array is required' });
+    }
+
+    let synced = 0;
+    const conflicts = [];
+
+    for (const review of reviews) {
+        try {
+            const card = db.prepare('SELECT * FROM flashcards WHERE id = ? AND user_email = ?')
+                .get(review.cardId, req.user.email);
+            
+            if (!card) {
+                conflicts.push({ cardId: review.cardId, reason: 'Card not found' });
+                continue;
+            }
+
+            db.prepare(`
+                UPDATE flashcards SET interval = ?, repetition = ?, efactor = ?, next_review_date = ?
+                WHERE id = ? AND user_email = ?
+            `).run(
+                review.interval || card.interval,
+                review.repetition || card.repetition,
+                review.efactor || card.efactor,
+                review.nextReviewDate || card.next_review_date,
+                review.cardId,
+                req.user.email
+            );
+            synced++;
+        } catch (err) {
+            conflicts.push({ cardId: review.cardId, reason: err.message });
+        }
+    }
+
+    res.json({ synced, conflicts, total: reviews.length });
+});
+
 // --- Global Error Handler ---
 app.use((err, req, res, next) => {
     console.error(`[Error] ${err.stack}`);
