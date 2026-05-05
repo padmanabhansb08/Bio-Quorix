@@ -24,6 +24,7 @@ const { generateTokenPair, verifyAccessToken, isTokenNearExpiry, validateRefresh
 const { sanitizePrompt, moderateResponse } = require('./middleware/promptGuard');
 const { generateCompletion } = require('./services/aiService');
 const { validate, signupSchema, loginSchema, updateUserSchema, activitySchema, quizRecordSchema, flashcardSyncSchema, aiGenerateSchema, pushSubscriptionSchema } = require('./utils/validators');
+const { logger, morganStream } = require('./utils/logger');
 
 // Run database migrations before anything else
 runMigrations(db);
@@ -43,7 +44,7 @@ if (vapidPublicKey && vapidPrivateKey) {
         vapidPrivateKey
     );
 } else {
-    console.warn('VAPID keys not configured. Web push notifications will not work.');
+    logger.warn('VAPID keys not configured. Web push notifications will not work.');
 }
 
 // --- Security & Logging Middleware ---
@@ -51,7 +52,7 @@ app.use(helmet({
     contentSecurityPolicy: {
         directives: {
             ...helmet.contentSecurityPolicy.getDefaultDirectives(),
-            "script-src": ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://cdn.jsdelivr.net"],
+            "script-src": ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://cdn.jsdelivr.net", "https://unpkg.com"],
             "img-src": ["'self'", "data:", "https:", "http:"],
             "connect-src": ["'self'", "https://api.groq.com", "https://api.resend.com"]
         }
@@ -65,7 +66,7 @@ const limiter = rateLimit({
 });
 app.use('/api/', limiter);
 
-app.use(morgan('combined'));
+app.use(morgan('combined', { stream: morganStream }));
 app.use(cors({ origin: true, credentials: true }));
 app.use(express.json());
 app.use(cookieParser());

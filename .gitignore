@@ -6,3 +6,5 @@ npm-debug.log*
 *.log
 .DS_Store
 .vscode/
+logs/
+data/

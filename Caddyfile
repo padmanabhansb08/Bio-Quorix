@@ -1,0 +1,8 @@
+localhost {
+  reverse_proxy app:8000
+}
+
+# For production, replace localhost with your domain:
+# yourdomain.com {
+#   reverse_proxy app:8000
+# }

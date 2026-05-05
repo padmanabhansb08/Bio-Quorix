@@ -1,15 +1,23 @@
 {
   "name": "quorix",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Quorix AI - Multi-Subject AI Learning Platform",
-  "main": "index.js",
+  "main": "app.js",
   "scripts": {
     "start": "node app.js",
     "dev": "node app.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest --coverage"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "ai",
+    "education",
+    "learning",
+    "spaced-repetition",
+    "pwa"
+  ],
+  "author": "Quorix Engineering",
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
@@ -30,5 +38,8 @@
     "web-push": "^3.6.7",
     "winston": "^3.19.0",
     "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "vitest": "^4.1.5"
   }
 }
