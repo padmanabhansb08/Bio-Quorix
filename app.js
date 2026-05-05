@@ -1,9 +1,13 @@
 require('dotenv').config();
+const { validateEnv } = require('./utils/validateEnv');
+validateEnv(); // Must be FIRST — exits if env is invalid
+
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const cookieParser = require('cookie-parser');
 const db = require('./database');
 const cron = require('node-cron');
 const PDFDocument = require('pdfkit');
@@ -13,6 +17,16 @@ const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const morgan = require('morgan');
 const fetch = (...args) => import('node-fetch').then(({ default: fetch }) => fetch(...args));
+
+// Phase 1 modules
+const { runMigrations } = require('./db/migrate');
+const { generateTokenPair, verifyAccessToken, isTokenNearExpiry, validateRefreshToken, revokeRefreshToken, storeRefreshToken, cleanupExpiredTokens } = require('./utils/tokenUtils');
+const { sanitizePrompt, moderateResponse } = require('./middleware/promptGuard');
+const { generateCompletion } = require('./services/aiService');
+const { validate, signupSchema, loginSchema, updateUserSchema, activitySchema, quizRecordSchema, flashcardSyncSchema, aiGenerateSchema, pushSubscriptionSchema } = require('./utils/validators');
+
+// Run database migrations before anything else
+runMigrations(db);
 
 const app = express();
 const PORT = process.env.PORT || 8000;
@@ -52,8 +66,9 @@ const limiter = rateLimit({
 app.use('/api/', limiter);
 
 app.use(morgan('combined'));
-app.use(cors());
+app.use(cors({ origin: true, credentials: true }));
 app.use(express.json());
+app.use(cookieParser());
 
 // Health check endpoint for monitoring
 app.get('/health', (req, res) => {
@@ -153,26 +168,32 @@ cron.schedule('0 18 * * *', async () => {
 // Serve static frontend files.
 app.use(express.static(path.join(__dirname, 'frontend', 'frontend')));
 
-// Middleware for auth
+// Middleware for auth — enhanced with auto-refresh detection
 const authenticateToken = (req, res, next) => {
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1];
 
     if (!token) return res.status(401).json({ error: 'Unauthorized' });
 
-    jwt.verify(token, JWT_SECRET, (err, user) => {
-        if (err) return res.status(403).json({ error: 'Forbidden' });
-        req.user = user;
-        next();
-    });
+    const decoded = verifyAccessToken(token);
+    if (!decoded) return res.status(403).json({ error: 'Forbidden' });
+
+    req.user = decoded;
+
+    // If token is near expiry, hint the client to refresh
+    if (isTokenNearExpiry(token, 2)) {
+        res.setHeader('X-Token-Expiring', 'true');
+    }
+
+    next();
 };
 
 // --- Auth Routes ---
 
-app.post('/api/auth/signup', async (req, res) => {
+app.post('/api/auth/signup', validate(signupSchema), async (req, res) => {
     const { name, email, password } = req.body;
     try {
-        const hashedPassword = await bcrypt.hash(password, 10);
+        const hashedPassword = await bcrypt.hash(password, 12);
         const stmt = db.prepare('INSERT INTO users (name, email, password) VALUES (?, ?, ?)');
         stmt.run(name, email, hashedPassword);
         res.status(201).json({ message: 'User created' });
@@ -180,12 +201,12 @@ app.post('/api/auth/signup', async (req, res) => {
         if (err.code === 'SQLITE_CONSTRAINT') {
             res.status(400).json({ error: 'Email already exists' });
         } else {
-            res.status(500).json({ error: err.message });
+            res.status(500).json({ error: 'Registration failed' });
         }
     }
 });
 
-app.post('/api/auth/login', async (req, res) => {
+app.post('/api/auth/login', validate(loginSchema), async (req, res) => {
     const { email, password } = req.body;
     const user = db.prepare('SELECT * FROM users WHERE email = ?').get(email);
 
@@ -193,8 +214,63 @@ app.post('/api/auth/login', async (req, res) => {
         return res.status(401).json({ error: 'Invalid credentials' });
     }
 
-    const token = jwt.sign({ email: user.email, name: user.name }, JWT_SECRET);
-    res.json({ token, user: { name: user.name, email: user.email, xp: user.xp, level: user.level, setupComplete: !!user.setup_complete, streakFreezes: user.streak_freezes || 0 } });
+    // Generate access + refresh token pair
+    const { accessToken, refreshToken, refreshTokenHash, refreshExpiresAt } = generateTokenPair(user);
+    storeRefreshToken(db, user.id, refreshTokenHash, refreshExpiresAt);
+
+    // Set refresh token as httpOnly cookie
+    res.cookie('refreshToken', refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'Strict',
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+        path: '/api/auth'
+    });
+
+    // Return access token in body (stored in JS memory on client)
+    res.json({ token: accessToken, user: { name: user.name, email: user.email, xp: user.xp, level: user.level, setupComplete: !!user.setup_complete, streakFreezes: user.streak_freezes || 0 } });
+});
+
+// --- Refresh Token Endpoint ---
+app.post('/api/auth/refresh', (req, res) => {
+    const rawToken = req.cookies?.refreshToken;
+    if (!rawToken) return res.status(401).json({ error: 'No refresh token' });
+
+    const { valid, userId, tokenHash } = validateRefreshToken(db, rawToken);
+    if (!valid) return res.status(403).json({ error: 'Invalid or expired refresh token' });
+
+    // Revoke old token (token rotation)
+    revokeRefreshToken(db, tokenHash);
+
+    // Get user data
+    const user = db.prepare('SELECT * FROM users WHERE id = ?').get(userId);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    // Issue new pair
+    const newPair = generateTokenPair(user);
+    storeRefreshToken(db, user.id, newPair.refreshTokenHash, newPair.refreshExpiresAt);
+
+    res.cookie('refreshToken', newPair.refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'Strict',
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+        path: '/api/auth'
+    });
+
+    res.json({ token: newPair.accessToken });
+});
+
+// --- Logout Endpoint ---
+app.post('/api/auth/logout', (req, res) => {
+    const rawToken = req.cookies?.refreshToken;
+    if (rawToken) {
+        const { valid, tokenHash } = validateRefreshToken(db, rawToken);
+        if (valid) revokeRefreshToken(db, tokenHash);
+    }
+
+    res.clearCookie('refreshToken', { path: '/api/auth' });
+    res.json({ message: 'Logged out successfully' });
 });
 
 // --- User Data Routes ---
@@ -223,7 +299,7 @@ app.get('/api/user/profile', authenticateToken, (req, res) => {
     });
 });
 
-app.post('/api/user/update', authenticateToken, (req, res) => {
+app.post('/api/user/update', authenticateToken, validate(updateUserSchema), (req, res) => {
     const { level, interests, xp, streak, setupComplete, streakFreezes } = req.body;
     const stmt = db.prepare(`
         UPDATE users 
@@ -234,7 +310,7 @@ app.post('/api/user/update', authenticateToken, (req, res) => {
     res.json({ message: 'User updated' });
 });
 
-app.post('/api/user/activity', authenticateToken, (req, res) => {
+app.post('/api/user/activity', authenticateToken, validate(activitySchema), (req, res) => {
     const { type, text } = req.body;
     const stmt = db.prepare('INSERT INTO activity (user_email, type, text) VALUES (?, ?, ?)');
     stmt.run(req.user.email, type, text);
@@ -282,17 +358,8 @@ app.post('/api/push/test', authenticateToken, async (req, res) => {
 
 // --- Quiz Routes ---
 
-app.post('/api/quiz/record', authenticateToken, (req, res) => {
-    const {
-        topicId,
-        topicName,
-        score,
-        totalQuestions,
-        correctAnswers,
-        subject = 'All Topics',
-        topic = 'General',
-        difficulty = 'Intermediate'
-    } = req.body;
+app.post('/api/quiz/record', authenticateToken, validate(quizRecordSchema), (req, res) => {
+    const { topicId, topicName, score, totalQuestions, correctAnswers, subject, topic, difficulty } = req.body;
     const user = db.prepare('SELECT id FROM users WHERE email = ?').get(req.user.email);
     const stmt = db.prepare(`
         INSERT INTO quiz_history
@@ -305,14 +372,8 @@ app.post('/api/quiz/record', authenticateToken, (req, res) => {
 
 // --- Flashcard Routes ---
 
-app.post('/api/flashcards/sync', authenticateToken, (req, res) => {
-    const {
-        topicId,
-        cards,
-        subject = 'All Topics',
-        topic = 'General',
-        difficulty = 'Intermediate'
-    } = req.body;
+app.post('/api/flashcards/sync', authenticateToken, validate(flashcardSyncSchema), (req, res) => {
+    const { topicId, cards, subject, topic, difficulty } = req.body;
     const user = db.prepare('SELECT id FROM users WHERE email = ?').get(req.user.email);
 
     db.transaction(() => {
@@ -348,13 +409,15 @@ app.post('/api/flashcards/sync', authenticateToken, (req, res) => {
 
 // --- AI Proxy ---
 
-app.post('/api/ai/generate', authenticateToken, async (req, res) => {
-    const {
-        prompt,
-        subject = 'All Topics',
-        topic = 'General',
-        difficulty = 'Intermediate'
-    } = req.body;
+// AI rate limiter: 20 req/min per IP for AI endpoints
+const aiLimiter = rateLimit({
+    windowMs: 60 * 1000,
+    max: 20,
+    message: { error: 'Too many AI requests. Please wait a moment.' }
+});
+
+app.post('/api/ai/generate', authenticateToken, aiLimiter, validate(aiGenerateSchema), sanitizePrompt, async (req, res) => {
+    const { prompt, subject, topic, difficulty } = req.body;
     const studyPrompt = `You are Quorix AI, an expert educational tutor.
 The student is studying: ${subject}
 Topic: ${topic}
@@ -370,38 +433,11 @@ Keep answers accurate, student-friendly, and focused on the selected subject.
 Student request:
 ${prompt}`;
     try {
-        const apiKey = process.env.GROQ_API_KEY;
-        if (!apiKey) {
-            throw new Error('GROQ_API_KEY is not configured in .env');
-        }
-
-        const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-            method: 'POST',
-            headers: { 
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${apiKey}`
-            },
-            body: JSON.stringify({
-                model: process.env.AI_MODEL || 'llama-3.3-70b-versatile',
-                messages: [
-                    { role: 'system', content: studyPrompt },
-                    { role: 'user', content: prompt }
-                ],
-                temperature: 0.7
-            })
-        });
-
-        if (!response.ok) {
-            const errorText = await response.text();
-            console.error('Groq API Error:', errorText);
-            throw new Error('AI service connection failed');
-        }
-
-        const data = await response.json();
-        res.json({ response: data.choices[0].message.content });
+        const result = await generateCompletion(studyPrompt, prompt);
+        res.json({ response: result.text, provider: result.provider });
     } catch (err) {
         console.error('Generation error:', err);
-        res.status(500).json({ error: err.message });
+        res.status(500).json({ error: 'AI service temporarily unavailable' });
     }
 });
 
@@ -416,6 +452,13 @@ app.use((err, req, res, next) => {
     });
 });
 
+// Cleanup expired tokens daily
+cron.schedule('0 3 * * *', () => {
+    cleanupExpiredTokens(db);
+    console.log('[Cron] Cleaned up expired refresh tokens');
+});
+
 app.listen(PORT, () => {
     console.log(`Backend server running at http://localhost:${PORT}`);
+    console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
 });

@@ -15,6 +15,7 @@
   "dependencies": {
     "bcryptjs": "^3.0.3",
     "better-sqlite3": "^12.6.2",
+    "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
     "dotenv": "^17.3.1",
     "express": "^5.2.1",
@@ -26,6 +27,8 @@
     "node-fetch": "^3.3.2",
     "pdfkit": "^0.18.0",
     "resend": "^6.12.2",
-    "web-push": "^3.6.7"
+    "web-push": "^3.6.7",
+    "winston": "^3.19.0",
+    "zod": "^4.4.3"
   }
 }
