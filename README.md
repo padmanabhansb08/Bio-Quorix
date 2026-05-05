@@ -1,49 +1,98 @@
-# Quorix AI - Multi-Subject AI Learning Platform
+# 🌌 Quorix AI — The Intelligent Learning OS
 
-Quorix AI is a Node.js, SQLite, HTML/CSS/JavaScript learning platform with a local Ollama-powered AI tutor. It supports subject-aware lessons, quizzes, flashcards, study notes, activity tracking, and authenticated user profiles.
+[![Version](https://img.shields.io/badge/version-1.0.0-blue.svg?style=for-the-badge)]()
+[![License](https://img.shields.io/badge/license-ISC-green.svg?style=for-the-badge)]()
+[![Platform](https://img.shields.io/badge/Platform-Node.js-339933?style=for-the-badge&logo=node.js&logoColor=white)]()
+[![PWA](https://img.shields.io/badge/PWA-Ready-f6120d?style=for-the-badge&logo=pwa&logoColor=white)]()
+[![Docker](https://img.shields.io/badge/Docker-Ready-2496ed?style=for-the-badge&logo=docker&logoColor=white)]()
 
-## Features
+**Quorix AI** is a state-of-the-art, multi-subject learning platform powered by high-performance Large Language Models (LLMs). It transforms static education into a dynamic, adaptive experience with personalized AI tutoring, spaced-repetition flashcards, and deep mastery analytics.
 
-- JWT signup/login and user profile storage
-- Subject, topic, and difficulty selection saved in localStorage
-- Quorix AI Tutor through local Ollama
-- AI-generated lessons, quizzes, flashcards, and study notes
-- Quiz history, flashcards, activity logging, XP, and progress analytics
-- Safe SQLite migrations that preserve existing users and learning data
+---
 
-## Supported Subjects
+## ✨ Core Pillars
 
-Biology, Physics, Chemistry, Mathematics, Computer Science, English, History, Geography, Economics, Commerce, Accounting, Political Science, Psychology, Sociology, Environmental Science, General Knowledge, and Exam Preparation.
+### 📖 Adaptive Curriculum
+Bespoke lessons generated in real-time. Whether it's **Quantum Physics** or **Macroeconomics**, Quorix adjusts content depth based on your selected level (School/University) and prior performance.
 
-## Setup
+### 🧠 Cognitive Retention (SM-2)
+Never forget what you learn. Our integrated **Spaced Repetition System** uses the SM-2 algorithm to schedule flashcard reviews at the mathematically optimal time for your memory.
 
+### 💬 Neural AI Tutor
+A dedicated tutor available 24/7. Ask questions, clear doubts, and get explanations in different personas (Professor, Comrade, or Emoji-friendly).
+
+### 📊 Mastery Analytics
+Track your "Learning Velocity" with high-end visualizations. Monitor your XP, level progression, and leaderboard rank in a real-time competitive environment.
+
+---
+
+## 🛠️ Production-Grade Tech Stack
+
+| Layer | Technologies |
+| :--- | :--- |
+| **Frontend** | Vanilla JS, CSS3 (Glassmorphism), PWA (Service Workers), Chart.js |
+| **Backend** | Node.js (Express), JWT Auth, Morgan Logging |
+| **Security** | Helmet.js, Express Rate Limit, BcryptJS |
+| **Database** | SQLite (Better-SQLite3) with specialized indexing |
+| **AI/ML** | Groq LPU™ Inference Engine (Llama 3.3 70B) |
+| **DevOps** | Docker, GitHub Actions, PWA Manifest |
+
+---
+
+## 🚀 Rapid Deployment
+
+### Standard Installation
 ```bash
+# Clone and enter
+git clone https://github.com/padmanabhansb08/Bio-Quorix.git
+cd Quorix-AI
+
+# Install dependencies
 npm install
+
+# Setup environment
+cp .env.example .env
+# Edit .env with your GROQ_API_KEY and JWT_SECRET
+
+# Launch
 npm start
 ```
 
-Open the app at:
-
-```text
-http://localhost:8000
-```
-
-## Ollama Requirement
-
-Install and run Ollama locally, then make sure the `llama3` model is available:
-
+### Docker Deployment (Recommended)
 ```bash
-ollama run llama3
+docker build -t quorix-ai .
+docker run -p 8000:8000 --env-file .env quorix-ai
 ```
 
-## Environment Variables
+---
 
-Create a `.env` file from `.env.example` and set:
+## 📱 Progressive Web App (PWA)
+Quorix AI is fully PWA-compatible. You can "Install" it on your:
+- **iOS/Android**: Add to Home Screen for a native app feel.
+- **Desktop**: Install via Chrome/Edge for offline access to cached resources.
 
-```text
-PORT=8000
-JWT_SECRET=your_secret_here
-OLLAMA_URL=http://localhost:11434/api/generate
-```
+---
 
-Do not commit `.env`, database files, or `node_modules`.
+## 🛡️ Security Architecture
+- **JWT Authentication**: Secure, stateless user sessions.
+- **Rate Limiting**: Protection against DDoS and brute-force attacks.
+- **Helmet Headers**: Industry-standard security headers for browser protection.
+- **Input Sanitization**: Multi-layer validation for all AI prompts and user data.
+
+---
+
+## 🗺️ Learning Roadmap
+- [x] Multi-subject support
+- [x] PWA Integration
+- [x] Spaced Repetition (SM-2)
+- [x] Dockerization
+- [ ] Collaborative Study Groups
+- [ ] Voice-to-Voice AI Tutoring
+- [ ] Advanced Subject-Specific Simulations
+
+---
+
+## 📄 License
+This project is licensed under the **ISC License**.
+
+Created with ❤️ by the Quorix Engineering Team.
