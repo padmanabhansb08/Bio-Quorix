@@ -198,19 +198,19 @@ h6 {
 }
 
 h1 {
-  font-size: 3rem;
+  font-size: clamp(2.5rem, 5vw + 1rem, 4.5rem);
 }
 
 h2 {
-  font-size: 2rem;
+  font-size: clamp(2rem, 4vw + 1rem, 3.5rem);
 }
 
 h3 {
-  font-size: 1.5rem;
+  font-size: clamp(1.5rem, 3vw + 0.5rem, 2.5rem);
 }
 
 h4 {
-  font-size: 1.25rem;
+  font-size: clamp(1.25rem, 2vw + 0.5rem, 1.75rem);
 }
 
 p {
@@ -2184,4 +2184,90 @@ a:hover {
 
 .theme-wave-overlay.expanding {
   clip-path: circle(150% at var(--wave-x, 50%) var(--wave-y, 50%));
+}
+/* ---- Premium Sticky Contextual Toolbar ---- */
+.sticky-toolbar {
+  position: fixed;
+  bottom: 32px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(15, 17, 21, 0.65);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: var(--radius-full);
+  display: flex;
+  gap: var(--space-sm);
+  padding: 8px 12px;
+  box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.5), 0 0 20px rgba(16, 185, 129, 0.2);
+  z-index: 1000;
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease;
+}
+
+.sticky-toolbar:hover {
+  box-shadow: 0 15px 50px -10px rgba(0, 0, 0, 0.6), 0 0 30px rgba(16, 185, 129, 0.3);
+  transform: translateX(-50%) translateY(-2px);
+}
+
+.sticky-toolbar .toolbar-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 16px;
+  min-width: 72px;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.sticky-toolbar .toolbar-btn::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: var(--gradient-primary);
+  opacity: 0;
+  border-radius: var(--radius-full);
+  transition: opacity 0.3s ease;
+  z-index: 0;
+}
+
+.sticky-toolbar .toolbar-btn:hover {
+  color: #fff;
+  transform: translateY(-4px);
+}
+
+.sticky-toolbar .toolbar-btn:hover::before {
+  opacity: 1;
+}
+
+.sticky-toolbar .toolbar-btn:active {
+  transform: translateY(0);
+}
+
+.sticky-toolbar .toolbar-btn .icon {
+  font-size: 1.4rem;
+  margin-bottom: 4px;
+  position: relative;
+  z-index: 1;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.sticky-toolbar .toolbar-btn:hover .icon {
+  transform: scale(1.1);
+}
+
+.sticky-toolbar .toolbar-btn .label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  position: relative;
+  z-index: 1;
 }

@@ -509,7 +509,8 @@ async function saveCurrentUser() {
                 interests: APP_STATE.currentUser.interests,
                 xp: APP_STATE.currentUser.xp,
                 streak: APP_STATE.currentUser.streak,
-                setupComplete: APP_STATE.currentUser.setupComplete
+                setupComplete: APP_STATE.currentUser.setupComplete,
+                streakFreezes: APP_STATE.currentUser.streakFreezes
             })
         });
     } catch (err) {
@@ -974,6 +975,9 @@ function updateDashboardData() {
     if (DOM_CACHE.statAvgScore) DOM_CACHE.statAvgScore.textContent = avgScore + '%';
     if (DOM_CACHE.statStreak) DOM_CACHE.statStreak.textContent = user.streak || calculateStreak(user);
 
+    const statFreezes = document.getElementById('statFreezes');
+    if (statFreezes) statFreezes.textContent = `Owned: ${user.streakFreezes || 0}`;
+
     // Recent activity
     if (DOM_CACHE.recentActivity && user.activity && user.activity.length > 0) {
         const recent = user.activity.slice(-5).reverse();
@@ -990,7 +994,100 @@ function updateDashboardData() {
 
     renderDailyQuests();
     renderSubjectProgress();
+    
+    // Initialize push notifications if supported
+    initPushNotifications();
 }
+
+async function initPushNotifications() {
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+    
+    try {
+        const registration = await navigator.serviceWorker.register('/sw.js');
+        const permission = await Notification.requestPermission();
+        
+        if (permission !== 'granted') return;
+        
+        let subscription = await registration.pushManager.getSubscription();
+        if (!subscription) {
+            const response = await fetch(`${API_BASE}/api/push/vapidPublicKey`);
+            const vapidPublicKey = await response.text();
+            
+            if (!vapidPublicKey) return;
+            
+            const convertedVapidKey = urlBase64ToUint8Array(vapidPublicKey);
+            subscription = await registration.pushManager.subscribe({
+                userVisibleOnly: true,
+                applicationServerKey: convertedVapidKey
+            });
+        }
+        
+        await fetch(`${API_BASE}/api/push/subscribe`, {
+            method: 'POST',
+            body: JSON.stringify(subscription),
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${AUTH_TOKEN}`
+            }
+        });
+        
+    } catch (error) {
+        console.error('Service Worker or Push Subscription failed:', error);
+    }
+}
+
+function urlBase64ToUint8Array(base64String) {
+    const padding = '='.repeat((4 - base64String.length % 4) % 4);
+    const base64 = (base64String + padding)
+        .replace(/\-/g, '+')
+        .replace(/_/g, '/');
+        
+    const rawData = window.atob(base64);
+    const outputArray = new Uint8Array(rawData.length);
+    
+    for (let i = 0; i < rawData.length; ++i) {
+        outputArray[i] = rawData.charCodeAt(i);
+    }
+    return outputArray;
+}
+
+async function testPushNotification() {
+    try {
+        const response = await fetch(`${API_BASE}/api/push/test`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${AUTH_TOKEN}`
+            }
+        });
+        if (response.ok) {
+            showToast('Push notification triggered!', '✅');
+        } else {
+            showToast('Please allow notifications in your browser first.', '❌');
+        }
+    } catch (err) {
+        console.error('Test push error:', err);
+    }
+}
+
+async function buyStreakFreeze() {
+    const user = APP_STATE.currentUser;
+    if (!user) return;
+    
+    if (user.xp < 500) {
+        showToast('Not enough XP. Keep learning to earn more!', '❌');
+        return;
+    }
+    
+    user.xp -= 500;
+    user.streakFreezes = (user.streakFreezes || 0) + 1;
+    
+    await logActivity('system', `Bought a Streak Freeze for 500 XP. You now have ${user.streakFreezes} freezes.`);
+    await saveCurrentUser();
+    
+    updateDashboardData();
+    showToast('Streak Freeze purchased! ❄️', '✅');
+}
+
 
 function renderSubjectProgress() {
     const user = APP_STATE.currentUser;

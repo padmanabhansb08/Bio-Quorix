@@ -15,6 +15,7 @@ db.exec(`
         interests TEXT,
         xp INTEGER DEFAULT 0,
         streak INTEGER DEFAULT 0,
+        streak_freezes INTEGER DEFAULT 0,
         last_active TEXT,
         setup_complete INTEGER DEFAULT 0,
         created_at TEXT DEFAULT CURRENT_TIMESTAMP
@@ -53,6 +54,12 @@ db.exec(`
         next_review_date INTEGER,
         FOREIGN KEY (user_email) REFERENCES users(email)
     );
+    CREATE TABLE IF NOT EXISTS push_subscriptions (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_email TEXT NOT NULL,
+        subscription TEXT NOT NULL,
+        FOREIGN KEY (user_email) REFERENCES users(email)
+    );
 `);
 
 function columnExists(table, column) {
@@ -79,6 +86,7 @@ addColumnIfMissing('flashcards', 'difficulty', "TEXT DEFAULT 'Intermediate'");
 addColumnIfMissing('flashcards', 'question', 'TEXT');
 addColumnIfMissing('flashcards', 'answer', 'TEXT');
 addColumnIfMissing('flashcards', 'created_at', 'TEXT');
+addColumnIfMissing('users', 'streak_freezes', 'INTEGER DEFAULT 0');
 
 db.exec(`
     UPDATE quiz_history SET created_at = COALESCE(created_at, date, CURRENT_TIMESTAMP);

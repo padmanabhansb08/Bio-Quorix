@@ -16,6 +16,8 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 
 <body>
@@ -135,7 +137,7 @@
               adapts as you learn.</p>
           </div>
           <div class="glass-card feature-card scroll-reveal delay-2 hover-elevate">
-            <div class="feature-icon purple">🧠</div>
+            <div class="feature-icon purple"><img src="images/3d_brain_icon.png" alt="Brain" style="width:40px; height:40px; object-fit:contain;"></div>
             <h4>Spatial Repetition</h4>
             <p>Built-in SM-2 algorithm flashcards optimize your memory retention schedule automatically.</p>
           </div>
@@ -420,28 +422,28 @@
           <span id="sidebarToggleArrow">◀</span>
         </button>
         <div class="sidebar-inner">
-          <div class="sidebar-section-title">📌 Main</div>
+          <div class="sidebar-section-title" style="display:flex; align-items:center; gap:6px;"><i data-lucide="layout-grid" style="width:14px; height:14px;"></i> Main</div>
           <ul class="sidebar-nav">
             <li><a href="#" class="active" onclick="showDashboardSection('overview')" id="nav-overview"><span
-                  class="nav-icon">📊</span> Overview</a></li>
-            <li><a href="#" onclick="showDashboardSection('learn')" id="nav-learn"><span class="nav-icon">📖</span>
+                  class="nav-icon"><i data-lucide="bar-chart-2" style="width:18px;height:18px;"></i></span> Overview</a></li>
+            <li><a href="#" onclick="showDashboardSection('learn')" id="nav-learn"><span class="nav-icon"><i data-lucide="book-open" style="width:18px;height:18px;"></i></span>
                 Learn</a></li>
-            <li><a href="#" onclick="showDashboardSection('quiz')" id="nav-quiz"><span class="nav-icon">📝</span>
+            <li><a href="#" onclick="showDashboardSection('quiz')" id="nav-quiz"><span class="nav-icon"><i data-lucide="pen-tool" style="width:18px;height:18px;"></i></span>
                 Quizzes</a></li>
             <li><a href="#" onclick="showDashboardSection('flashcards')" id="nav-flashcards"><span
-                  class="nav-icon">📇</span> Flashcards</a></li>
-            <li><a href="#" onclick="showDashboardSection('notes')" id="nav-notes"><span class="nav-icon">NT</span> Study Notes</a></li>
-            <li><a href="#" onclick="showDashboardSection('chat')" id="nav-chat"><span class="nav-icon">💬</span> AI
+                  class="nav-icon"><i data-lucide="layers" style="width:18px;height:18px;"></i></span> Flashcards</a></li>
+            <li><a href="#" onclick="showDashboardSection('notes')" id="nav-notes"><span class="nav-icon"><i data-lucide="sticky-note" style="width:18px;height:18px;"></i></span> Study Notes</a></li>
+            <li><a href="#" onclick="showDashboardSection('chat')" id="nav-chat"><span class="nav-icon"><i data-lucide="message-square" style="width:18px;height:18px;"></i></span> AI
                 Tutor</a></li>
           </ul>
-          <div class="sidebar-section-title">🚀 Progress</div>
+          <div class="sidebar-section-title" style="display:flex; align-items:center; gap:6px;"><i data-lucide="rocket" style="width:14px; height:14px;"></i> Progress</div>
           <ul class="sidebar-nav">
-            <li><a href="#" onclick="showDashboardSection('path')" id="nav-path"><span class="nav-icon">🗺️</span>
+            <li><a href="#" onclick="showDashboardSection('path')" id="nav-path"><span class="nav-icon"><i data-lucide="map" style="width:18px;height:18px;"></i></span>
                 Learning Path</a></li>
             <li><a href="#" onclick="showDashboardSection('analytics')" id="nav-analytics"><span
-                  class="nav-icon">📈</span> Analytics</a></li>
+                  class="nav-icon"><i data-lucide="trending-up" style="width:18px;height:18px;"></i></span> Analytics</a></li>
             <li><a href="#" onclick="showDashboardSection('leaderboard')" id="nav-leaderboard"><span
-                  class="nav-icon">🏆</span> Leaderboard</a></li>
+                  class="nav-icon"><i data-lucide="trophy" style="width:18px;height:18px;"></i></span> Leaderboard</a></li>
           </ul>
 
           <!-- User Card at bottom -->
@@ -509,12 +511,21 @@
               <div class="stat-value" id="statAvgScore">0%</div>
               <div class="stat-label">Average Score</div>
             </div>
-            <div class="glass-card stat-card hover-elevate">
-              <div class="stat-header">
-                <div class="stat-icon-box" style="background:rgba(20,184,166,0.15);">⏱️</div>
+            <div class="glass-card stat-card hover-elevate" style="position:relative; display:flex; flex-direction:column; justify-content:space-between;">
+              <div>
+                <div class="stat-header">
+                  <div class="stat-icon-box" style="background:rgba(20,184,166,0.15);">⏱️</div>
+                </div>
+                <div class="stat-value" id="statStreak">0</div>
+                <div class="stat-label">Day Streak</div>
               </div>
-              <div class="stat-value" id="statStreak">0</div>
-              <div class="stat-label">Day Streak</div>
+              <div style="background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 8px; padding: 8px; margin-top: 16px; display: flex; align-items: center; justify-content: space-between; gap: 8px; transition: all 0.3s;" onmouseover="this.style.background='rgba(59, 130, 246, 0.15)'; this.style.borderColor='rgba(59, 130, 246, 0.5)'" onmouseout="this.style.background='rgba(59, 130, 246, 0.1)'; this.style.borderColor='rgba(59, 130, 246, 0.3)'">
+                 <div>
+                    <div style="font-size: 0.8rem; font-weight: 700; color: #60a5fa; display: flex; align-items: center; gap: 4px;">❄️ <span style="letter-spacing: 0.05em; text-transform: uppercase;">Freeze</span></div>
+                    <div id="statFreezes" style="font-size: 0.7rem; color: var(--text-muted); font-family: 'JetBrains Mono', monospace; margin-top: 2px;">Owned: 0</div>
+                 </div>
+                 <button class="btn btn-primary ripple-btn" onclick="buyStreakFreeze()" style="padding: 6px 12px; font-size: 0.75rem; font-weight: 800; background: linear-gradient(135deg, #3b82f6, #1d4ed8); border: none; box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4); border-radius: 6px;" title="Spend 500 XP to protect your streak!">-500 XP</button>
+              </div>
             </div>
           </div>
 
@@ -717,7 +728,7 @@
               <div style="display:flex; align-items:center; gap:12px;">
                 <div
                   style="width:40px;height:40px;border-radius:50%;background:rgba(16,185,129,0.15);display:flex;align-items:center;justify-content:center;font-size:1.2rem;">
-                  🌿</div>
+                  <img src="images/3d_plant_icon.png" alt="Plant" style="width:28px; height:28px; object-fit:contain;"></div>
                 <div>
                   <div style="font-weight:600;">Quorix AI Tutor</div>
                   <div style="font-size:0.8rem;color:var(--primary-400);">● Online — Ask me anything!</div>
@@ -743,7 +754,7 @@
             </div>
             <div class="chat-messages" id="chatMessages">
               <div class="chat-message ai">
-                <div class="chat-avatar">🌿</div>
+                <div class="chat-avatar"><img src="images/3d_plant_icon.png" alt="Plant" style="width:24px; height:24px; object-fit:contain; border-radius:50%;"></div>
                 <div class="chat-bubble">Hi there! 👋 I'm your Quorix AI Tutor. Ask me anything about your selected subject —
                   science, mathematics, humanities, commerce, exams, or any topic you choose. I'll explain it at your level. What
                   would you like to learn about?</div>
@@ -957,6 +968,7 @@
                 <button class="btn btn-secondary" onclick="exportUserData()" style="font-size:0.85rem;">Export My Data
                   📤</button>
               </div>
+              <button class="btn btn-primary ripple-btn" onclick="testPushNotification()" style="width:100%; margin-top:16px; background:linear-gradient(135deg, #10b981, #3b82f6); border:none; box-shadow:0 4px 15px rgba(16,185,129,0.3);">🔔 Test Push Notification</button>
             </div>
 
             <!-- Delete Section -->
@@ -970,6 +982,23 @@
           </div>
         </div>
       </main>
+
+      <!-- Sticky Contextual Toolbar -->
+      <div class="sticky-toolbar" id="stickyToolbar">
+        <button class="toolbar-btn" onclick="showDashboardSection('learn')">
+          <span class="icon"><i data-lucide="book-open"></i></span>
+          <span class="label">Learn</span>
+        </button>
+        <button class="toolbar-btn" onclick="showDashboardSection('quiz')">
+          <span class="icon"><i data-lucide="file-text"></i></span>
+          <span class="label">Quiz</span>
+        </button>
+        <button class="toolbar-btn" onclick="showDashboardSection('chat')">
+          <span class="icon"><i data-lucide="message-circle"></i></span>
+          <span class="label">Chat</span>
+        </button>
+      </div>
+
     </div>
   </div>
 
@@ -1019,6 +1048,10 @@
   <script defer src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.12/dist/face-api.js"></script>
   <script src="js/data.js"></script>
   <script src="js/app.js"></script>
+  <script>
+    // Initialize Lucide icons
+    lucide.createIcons();
+  </script>
 </body>
 
 </html>

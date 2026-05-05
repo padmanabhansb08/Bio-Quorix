@@ -5,14 +5,122 @@ const path = require('path');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const db = require('./database');
+const cron = require('node-cron');
+const PDFDocument = require('pdfkit');
+const { Resend } = require('resend');
+const webpush = require('web-push');
 const fetch = (...args) => import('node-fetch').then(({ default: fetch }) => fetch(...args));
 
 const app = express();
 const PORT = process.env.PORT || 8000;
 const JWT_SECRET = process.env.JWT_SECRET;
+const resend = new Resend(process.env.RESEND_API_KEY || 're_123456789'); // dummy fallback
+
+// Configure Web Push
+const vapidPublicKey = process.env.VAPID_PUBLIC_KEY;
+const vapidPrivateKey = process.env.VAPID_PRIVATE_KEY;
+if (vapidPublicKey && vapidPrivateKey) {
+    webpush.setVapidDetails(
+        'mailto:support@quorix.ai',
+        vapidPublicKey,
+        vapidPrivateKey
+    );
+} else {
+    console.warn('VAPID keys not configured. Web push notifications will not work.');
+}
 
 app.use(cors());
 app.use(express.json());
+
+// Automated Weekly Reports
+cron.schedule('0 9 * * 0', async () => {
+    console.log('Running weekly report cron job...');
+    try {
+        const users = db.prepare('SELECT * FROM users').all();
+        for (const user of users) {
+            if (!user.email) continue;
+            
+            const doc = new PDFDocument();
+            let buffers = [];
+            doc.on('data', buffers.push.bind(buffers));
+            
+            doc.fontSize(24).text('Weekly Learning Report', { align: 'center' });
+            doc.moveDown();
+            doc.fontSize(16).text(`Hello ${user.name},`);
+            doc.moveDown();
+            doc.fontSize(14).text(`Current Level: ${user.level || 'Not set'}`);
+            doc.text(`Total XP: ${user.xp || 0}`);
+            doc.text(`Current Streak: ${user.streak || 0}`);
+            doc.text(`Streak Freezes: ${user.streak_freezes || 0}`);
+            
+            const upcomingFlashcards = db.prepare('SELECT COUNT(*) as count FROM flashcards WHERE user_email = ? AND next_review_date <= ?').get(user.email, Date.now() + 7*24*60*60*1000);
+            doc.moveDown();
+            doc.text(`You have ${upcomingFlashcards ? upcomingFlashcards.count : 0} flashcards due for review this week.`);
+            
+            doc.end();
+            
+            doc.on('end', async () => {
+                const pdfData = Buffer.concat(buffers);
+                try {
+                    await resend.emails.send({
+                        from: 'Quorix AI <onboarding@resend.dev>',
+                        to: user.email,
+                        subject: 'Your Weekly Learning Report',
+                        html: '<p>Here is your weekly progress report from Quorix AI!</p>',
+                        attachments: [{
+                            filename: 'weekly_report.pdf',
+                            content: pdfData
+                        }]
+                    });
+                } catch (err) {
+                    console.error(`Failed to send report to ${user.email}:`, err);
+                }
+            });
+        }
+    } catch (err) {
+        console.error('Error in cron job:', err);
+    }
+});
+
+// Push Notification Re-engagement Cron Job
+cron.schedule('0 18 * * *', async () => {
+    // Run daily at 6 PM
+    console.log('Running daily push notification re-engagement...');
+    try {
+        const users = db.prepare('SELECT email, name FROM users').all();
+        const now = Date.now();
+        
+        for (const user of users) {
+            const dueFlashcards = db.prepare('SELECT COUNT(*) as count FROM flashcards WHERE user_email = ? AND next_review_date <= ?').get(user.email, now);
+            
+            if (dueFlashcards && dueFlashcards.count > 0) {
+                // Find all push subscriptions for this user
+                const subscriptions = db.prepare('SELECT subscription FROM push_subscriptions WHERE user_email = ?').all(user.email);
+                
+                const payload = JSON.stringify({
+                    title: 'Quorix AI',
+                    body: `Your CRISPR flashcards are forgetting you! You have ${dueFlashcards.count} flashcards due for review.`,
+                    icon: '/images/3d_brain_icon.png'
+                });
+
+                for (const sub of subscriptions) {
+                    try {
+                        const pushSubscription = JSON.parse(sub.subscription);
+                        await webpush.sendNotification(pushSubscription, payload);
+                    } catch (err) {
+                        console.error('Error sending push notification to', user.email, err);
+                        // Optional: delete invalid subscriptions (err.statusCode === 410 or 404)
+                        if (err.statusCode === 410 || err.statusCode === 404) {
+                            db.prepare('DELETE FROM push_subscriptions WHERE subscription = ?').run(sub.subscription);
+                        }
+                    }
+                }
+            }
+        }
+    } catch (err) {
+        console.error('Error in push notification cron job:', err);
+    }
+});
 
 // Serve static frontend files.
 app.use(express.static(path.join(__dirname, 'frontend', 'frontend')));
@@ -58,7 +166,7 @@ app.post('/api/auth/login', async (req, res) => {
     }
 
     const token = jwt.sign({ email: user.email, name: user.name }, JWT_SECRET);
-    res.json({ token, user: { name: user.name, email: user.email, xp: user.xp, level: user.level, setupComplete: !!user.setup_complete } });
+    res.json({ token, user: { name: user.name, email: user.email, xp: user.xp, level: user.level, setupComplete: !!user.setup_complete, streakFreezes: user.streak_freezes || 0 } });
 });
 
 // --- User Data Routes ---
@@ -88,13 +196,13 @@ app.get('/api/user/profile', authenticateToken, (req, res) => {
 });
 
 app.post('/api/user/update', authenticateToken, (req, res) => {
-    const { level, interests, xp, streak, setupComplete } = req.body;
+    const { level, interests, xp, streak, setupComplete, streakFreezes } = req.body;
     const stmt = db.prepare(`
         UPDATE users 
-        SET level = ?, interests = ?, xp = ?, streak = ?, setup_complete = ?, last_active = CURRENT_TIMESTAMP
+        SET level = ?, interests = ?, xp = ?, streak = ?, setup_complete = ?, streak_freezes = ?, last_active = CURRENT_TIMESTAMP
         WHERE email = ?
     `);
-    stmt.run(level, JSON.stringify(interests), xp, streak, setupComplete ? 1 : 0, req.user.email);
+    stmt.run(level, JSON.stringify(interests), xp, streak, setupComplete ? 1 : 0, streakFreezes || 0, req.user.email);
     res.json({ message: 'User updated' });
 });
 
@@ -103,6 +211,45 @@ app.post('/api/user/activity', authenticateToken, (req, res) => {
     const stmt = db.prepare('INSERT INTO activity (user_email, type, text) VALUES (?, ?, ?)');
     stmt.run(req.user.email, type, text);
     res.json({ message: 'Activity logged' });
+});
+
+// --- Push Notification Routes ---
+
+app.get('/api/push/vapidPublicKey', (req, res) => {
+    res.send(process.env.VAPID_PUBLIC_KEY || '');
+});
+
+app.post('/api/push/subscribe', authenticateToken, (req, res) => {
+    const subscription = req.body;
+    
+    // Check if it already exists
+    const existing = db.prepare('SELECT id FROM push_subscriptions WHERE user_email = ? AND subscription = ?').get(req.user.email, JSON.stringify(subscription));
+    
+    if (!existing) {
+        db.prepare('INSERT INTO push_subscriptions (user_email, subscription) VALUES (?, ?)').run(req.user.email, JSON.stringify(subscription));
+    }
+    
+    res.status(201).json({ message: 'Subscribed to push notifications' });
+});
+
+app.post('/api/push/test', authenticateToken, async (req, res) => {
+    try {
+        const subscriptions = db.prepare('SELECT subscription FROM push_subscriptions WHERE user_email = ?').all(req.user.email);
+        const payload = JSON.stringify({
+            title: 'Quorix AI',
+            body: 'Your CRISPR flashcards are forgetting you! You have 5 flashcards due for review.',
+            icon: '/images/3d_brain_icon.png'
+        });
+        
+        for (const sub of subscriptions) {
+            const pushSubscription = JSON.parse(sub.subscription);
+            await webpush.sendNotification(pushSubscription, payload);
+        }
+        res.json({ message: 'Test notification sent!' });
+    } catch (err) {
+        console.error('Test push error:', err);
+        res.status(500).json({ error: err.message });
+    }
 });
 
 // --- Quiz Routes ---
