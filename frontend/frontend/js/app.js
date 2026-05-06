@@ -144,34 +144,7 @@ function navigateTo(page) {
 function updateNavbar() {
     const navLinks = document.getElementById('navLinks');
     if (APP_STATE.currentUser) {
-        document.getElementById('navLinks').innerHTML = `
-        <li><a href="#" onclick="navigateTo('dashboard'); showDashboardSection('learn');" style="font-weight: 500; font-size: 0.95rem; color: var(--text-secondary); transition: color 0.2s; margin-right: 16px;" onmouseover="this.style.color='var(--text-primary)'" onmouseout="this.style.color='var(--text-secondary)'">Courses</a></li>
-        <li><a href="#" onclick="navigateTo('landing'); setTimeout(() => document.getElementById('testimonials').scrollIntoView({behavior:'smooth'}), 100);" style="font-weight: 500; font-size: 0.95rem; color: var(--text-secondary); transition: color 0.2s; margin-right: 16px;" onmouseover="this.style.color='var(--text-primary)'" onmouseout="this.style.color='var(--text-secondary)'">About Us</a></li>
-        <li><a href="#" onclick="navigateTo('dashboard')" style="font-weight: 500; font-size: 0.95rem; color: var(--text-secondary); transition: color 0.2s;" onmouseover="this.style.color='var(--text-primary)'" onmouseout="this.style.color='var(--text-secondary)'">Dashboard</a></li>
-        <li><a href="#" onclick="toggleNotifications(event)" style="font-size:1.1rem; cursor:pointer; position:relative; margin: 0 16px 0 8px; color: var(--text-secondary); transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.1)'; this.style.color='var(--primary-400)'" onmouseout="this.style.transform='scale(1)'; this.style.color='var(--text-secondary)'" title="Notifications">
-            🔔<span id="navNotificationDot" style="position:absolute; top:-2px; right:-2px; background:var(--error); width:8px; height:8px; border-radius:50%; box-shadow: 0 0 6px var(--error);"></span>
-        </a>
-        <!-- Viewport attached dynamic dropdown container -->
-        <div id="notificationsDropdown" class="hidden glass-card" style="position:absolute; top:60px; right:120px; width:340px; max-width:90vw; max-height:400px; overflow-y:auto; z-index:100; padding:0; background:var(--bg-card); border:1px solid var(--border-color); box-shadow:var(--shadow-lg);">
-            <div style="padding:16px; border-bottom:1px solid var(--border-color); display:flex; justify-content:space-between; align-items:center;">
-                <h4 style="margin:0;">Notifications</h4>
-                <button class="btn btn-ghost btn-sm" onclick="markNotificationsRead()" style="font-size:0.8rem; padding:4px 8px;">Mark all read</button>
-            </div>
-            <div id="notificationsList"></div>
-        </div>
-        </li>
-        <li style="position:relative;">
-            <button onclick="toggleProfileMenu(event)" style="background: var(--primary-500); color: white; border: none; padding: 6px 18px; border-radius: 9999px; display: inline-flex; align-items: center; gap: 8px; font-weight: 700; font-size: 0.9rem; cursor: pointer; transition: all 0.2s; box-shadow: var(--shadow-glow);" onmouseover="this.style.background='var(--primary-600)'; this.style.transform='translateY(-1px)'" onmouseout="this.style.background='var(--primary-500)'; this.style.transform='translateY(0)'">👤 ${APP_STATE.currentUser.name.split(' ')[0].toLowerCase()} ✨ ${APP_STATE.currentUser.xp || 0} XP</button>
-            
-            <!-- Profile Dropdown -->
-            <div id="profileDropdown" class="hidden glass-card" style="position:absolute; top:48px; right:0; width:220px; z-index:100; padding:8px 0; background:var(--bg-card); border:1px solid var(--border-color); box-shadow:var(--shadow-lg); border-radius:12px; display:flex; flex-direction:column;">
-                <a href="#" onclick="navigateTo('dashboard'); showDashboardSection('credits'); renderCreditHistory(); closeProfileMenu();" style="display:flex; align-items:center; gap:12px; padding:12px 20px; color:var(--text-primary); text-decoration:none; transition:background 0.2s;" onmouseover="this.style.background='var(--bg-secondary)'" onmouseout="this.style.background='transparent'"><span style="font-size:1.1rem;">✨</span> Credit History</a>
-                <a href="#" onclick="navigateTo('dashboard'); showDashboardSection('profile'); closeProfileMenu();" style="display:flex; align-items:center; gap:12px; padding:12px 20px; color:var(--text-primary); text-decoration:none; transition:background 0.2s;" onmouseover="this.style.background='var(--bg-secondary)'" onmouseout="this.style.background='transparent'"><span style="font-size:1.1rem;">👤</span> Profile Settings</a>
-                <div style="height:1px; background:var(--border-color); margin:4px 0;"></div>
-                <a href="#" onclick="handleLogout()" style="display:flex; align-items:center; gap:12px; padding:12px 20px; color:var(--error); text-decoration:none; transition:background 0.2s;" onmouseover="this.style.background='var(--bg-secondary)'" onmouseout="this.style.background='transparent'"><span style="font-size:1.1rem;">🚪</span> Logout</a>
-            </div>
-        </li>
-      `;
+        document.getElementById('navLinks').innerHTML = ''; // Links moved to sidebar
     } else {
         navLinks.innerHTML = `
       <li><a href="#" onclick="document.getElementById('features-section').scrollIntoView({behavior:'smooth'})" style="font-weight: 500; font-size: 0.95rem; color: var(--text-secondary); transition: color 0.2s;" onmouseover="this.style.color='var(--text-primary)'" onmouseout="this.style.color='var(--text-secondary)'">Courses</a></li>
@@ -232,7 +205,7 @@ function saveStudySelection() {
     APP_STATE.lastLessonText = '';
     updateStudyContextSummary();
     updateDashboardData();
-    showToast(`Study focus saved: ${subject} / ${topic} / ${difficulty}`, '✅');
+    showToast(`Study focus saved: ${subject} / ${topic} / ${difficulty}`, '');
 }
 
 function updateStudyContextSummary() {
@@ -278,7 +251,7 @@ function getTopicsForCurrentSelection() {
         {
             id: `custom-${slugifyTopic(context.subject)}-${slugifyTopic(topicName)}`,
             name: topicName,
-            icon: '📘',
+            icon: '',
             description: `${context.difficulty} ${context.subject} study module focused on ${topicName}.`,
             difficulty: context.difficulty.toLowerCase(),
             prereqs: [],
@@ -287,7 +260,7 @@ function getTopicsForCurrentSelection() {
         {
             id: `custom-${slugifyTopic(context.subject)}-foundations`,
             name: `${context.subject} Foundations`,
-            icon: '🧭',
+            icon: '',
             description: `Core ideas and prerequisite concepts for ${context.subject}.`,
             difficulty: 'beginner',
             prereqs: [],
@@ -322,7 +295,7 @@ async function handleLogin(e) {
             localStorage.setItem('bionexus_token', AUTH_TOKEN);
             APP_STATE.currentUser = data.user;
 
-            showToast('Welcome back! 👋', '✅');
+            showToast('Welcome back! ', '');
 
             if (!APP_STATE.currentUser.setupComplete) {
                 hideGlobalLoader();
@@ -334,11 +307,11 @@ async function handleLogin(e) {
             }
         } else {
             hideGlobalLoader();
-            showToast(data.error || 'Login failed', '❌');
+            showToast(data.error || 'Login failed', '');
         }
     } catch (err) {
         hideGlobalLoader();
-        showToast('Server error. Is the backend running?', '❌');
+        showToast('Server error. Is the backend running?', '');
     }
 }
 
@@ -417,7 +390,7 @@ function populateNotifications() {
     const recent = user.activity.slice(-10).reverse();
     list.innerHTML = recent.map(a => `
       <div style="display:flex; align-items:flex-start; gap:12px; padding:12px 16px; border-bottom:1px solid rgba(255,255,255,0.04); transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.02)'" onmouseout="this.style.background='transparent'">
-        <span style="font-size:1.1rem; margin-top:2px;">${a.type === 'quiz' ? '📝' : a.type === 'lesson' ? '📖' : a.type === 'system' ? '🌟' : '💬'}</span>
+        <span style="font-size:1.1rem; margin-top:2px;">${a.type === 'quiz' ? '' : a.type === 'lesson' ? '' : a.type === 'system' ? '' : ''}</span>
         <div style="flex:1;">
           <div style="font-size:0.9rem; font-weight:500; color:var(--text-primary); margin-bottom:2px; line-height:1.3;">${a.text}</div>
           <div style="font-size:0.75rem; color:var(--text-muted);">${timeAgo(a.date)}</div>
@@ -440,7 +413,7 @@ async function handleSignup(e) {
     const password = document.getElementById('signupPassword').value;
 
     if (!name || !email || !password) {
-        showToast('Please fill out all fields.', '⚠️');
+        showToast('Please fill out all fields.', '');
         return;
     }
 
@@ -452,15 +425,15 @@ async function handleSignup(e) {
         });
         const data = await response.json();
         if (response.ok) {
-            showToast('Account created! Logging you in...', '✅');
+            showToast('Account created! Logging you in...', '');
             document.getElementById('loginEmail').value = email;
             document.getElementById('loginPassword').value = password;
             await handleLogin({ preventDefault: () => { } });
         } else {
-            showToast(data.error || 'Signup failed', '❌');
+            showToast(data.error || 'Signup failed', '');
         }
     } catch (err) {
-        showToast('Server error during signup.', '❌');
+        showToast('Server error during signup.', '');
     }
 }
 
@@ -469,7 +442,7 @@ function handleLogout() {
     AUTH_TOKEN = null;
     localStorage.removeItem('bionexus_token');
     navigateTo('landing');
-    showToast('Logged out successfully', '👋');
+    showToast('Logged out successfully', '');
 }
 
 async function loadUserFromStorage() {
@@ -588,18 +561,18 @@ function nextSetupStep(step) {
 }
 
 const MIXED_INTEREST_TOPICS = [
-    { id: 'quantum-physics', name: 'Quantum Physics', icon: '⚛️' },
-    { id: 'organic-chemistry', name: 'Organic Chemistry', icon: '🧪' },
-    { id: 'calculus', name: 'Calculus', icon: '📐' },
-    { id: 'artificial-intelligence', name: 'Artificial Intelligence', icon: '🤖' },
-    { id: 'world-history', name: 'World History', icon: '🌍' },
-    { id: 'macroeconomics', name: 'Macroeconomics', icon: '📈' },
-    { id: 'creative-writing', name: 'Creative Writing', icon: '✍️' },
-    { id: 'genetics', name: 'Genetics & Evolution', icon: '🧬' },
-    { id: 'psychology', name: 'Cognitive Psychology', icon: '🧠' },
-    { id: 'astrophysics', name: 'Astrophysics', icon: '🌌' },
-    { id: 'cybersecurity', name: 'Cybersecurity', icon: '🔒' },
-    { id: 'environmental-science', name: 'Environmental Science', icon: '🌱' }
+    { id: 'quantum-physics', name: 'Quantum Physics', icon: '' },
+    { id: 'organic-chemistry', name: 'Organic Chemistry', icon: '' },
+    { id: 'calculus', name: 'Calculus', icon: '' },
+    { id: 'artificial-intelligence', name: 'Artificial Intelligence', icon: '' },
+    { id: 'world-history', name: 'World History', icon: '' },
+    { id: 'macroeconomics', name: 'Macroeconomics', icon: '' },
+    { id: 'creative-writing', name: 'Creative Writing', icon: '' },
+    { id: 'genetics', name: 'Genetics & Evolution', icon: '' },
+    { id: 'psychology', name: 'Cognitive Psychology', icon: '' },
+    { id: 'astrophysics', name: 'Astrophysics', icon: '' },
+    { id: 'cybersecurity', name: 'Cybersecurity', icon: '' },
+    { id: 'environmental-science', name: 'Environmental Science', icon: '' }
 ];
 
 function populateInterestTags() {
@@ -679,7 +652,7 @@ function renderDiagnosticQuestion() {
     const progress = ((qs.currentIndex) / qs.questions.length) * 100;
 
     area.innerHTML = `
-    <h3 style="text-align:center; margin-bottom:8px;">📋 Diagnostic Quiz</h3>
+    <h3 style="text-align:center; margin-bottom:8px;"> Diagnostic Quiz</h3>
     <p style="text-align:center; margin-bottom:16px; font-size:0.85rem; color:var(--text-muted);">Question ${qs.currentIndex + 1} of ${qs.questions.length}</p>
     <div class="quiz-progress-bar" style="margin-bottom:24px;">
       <div class="progress-fill" style="width:${progress}%"></div>
@@ -787,18 +760,18 @@ async function finishDiagnosticQuiz() {
     const area = document.getElementById('diagnosticQuizArea');
     area.innerHTML = `
     <div style="text-align:center;">
-      <div style="font-size:3rem; margin-bottom:12px;">🎉</div>
+      <div style="font-size:3rem; margin-bottom:12px;"></div>
       <h2>Diagnostic Complete!</h2>
       <div style="font-size:3.5rem; font-weight:900; margin:16px 0;" class="text-gradient">${scorePercent}%</div>
       <p style="margin-bottom:24px;">We've assessed your learning level and created your personalized study path.</p>
       ${weakAreas.length ? `
         <div style="background:rgba(245,158,11,0.06); border-left:3px solid var(--warning); padding:12px 16px; border-radius:0 8px 8px 0; text-align:left; margin-bottom:24px;">
-          <strong style="color:var(--warning);">🔧 Areas to Focus On:</strong><br>
+          <strong style="color:var(--warning);"> Areas to Focus On:</strong><br>
           <span style="color:var(--text-secondary);">${weakAreas.join(', ')}</span>
         </div>
       ` : `
         <div style="background:rgba(34,197,94,0.06); border-left:3px solid var(--success); padding:12px 16px; border-radius:0 8px 8px 0; text-align:left; margin-bottom:24px;">
-          <strong style="color:var(--success);">💪 Great job!</strong><br>
+          <strong style="color:var(--success);"> Great job!</strong><br>
           <span style="color:var(--text-secondary);">You have a strong foundation! Let's take you to advanced topics.</span>
         </div>
       `}
@@ -993,7 +966,7 @@ function updateDashboardData() {
 
     // Explicit cache refresh if it wasn't captured initially (e.g. appended dynamically)
     if (!DOM_CACHE.sidebarXp) DOM_CACHE.sidebarXp = document.getElementById('sidebarXp');
-    if (DOM_CACHE.sidebarXp) DOM_CACHE.sidebarXp.textContent = `✨ ${user.xp || 0} XP`;
+    if (DOM_CACHE.sidebarXp) DOM_CACHE.sidebarXp.textContent = ` ${user.xp || 0} XP`;
 
     if (!DOM_CACHE.statModules) DOM_CACHE.statModules = document.getElementById('statModules');
     const completed = user.completedTopics?.length || 0;
@@ -1015,7 +988,7 @@ function updateDashboardData() {
         const recent = user.activity.slice(-5).reverse();
         DOM_CACHE.recentActivity.innerHTML = recent.map(a => `
       <div style="display:flex; align-items:flex-start; gap:16px; padding:16px 24px; border-bottom:1px solid rgba(255,255,255,0.04);">
-        <span style="font-size:1.1rem; margin-top:2px;">${a.type === 'quiz' ? '📝' : a.type === 'lesson' ? '📖' : '💬'}</span>
+        <span style="font-size:1.1rem; margin-top:2px;">${a.type === 'quiz' ? '' : a.type === 'lesson' ? '' : ''}</span>
         <div style="flex:1;">
           <div style="font-size:0.95rem; font-weight:500; color:var(--text-primary); margin-bottom:4px;">${a.text}</div>
           <div style="font-size:0.8rem; color:var(--text-muted);">${timeAgo(a.date)}</div>
@@ -1092,9 +1065,9 @@ async function testPushNotification() {
             }
         });
         if (response.ok) {
-            showToast('Push notification triggered!', '✅');
+            showToast('Push notification triggered!', '');
         } else {
-            showToast('Please allow notifications in your browser first.', '❌');
+            showToast('Please allow notifications in your browser first.', '');
         }
     } catch (err) {
         console.error('Test push error:', err);
@@ -1106,7 +1079,7 @@ async function buyStreakFreeze() {
     if (!user) return;
     
     if (user.xp < 500) {
-        showToast('Not enough XP. Keep learning to earn more!', '❌');
+        showToast('Not enough XP. Keep learning to earn more!', '');
         return;
     }
     
@@ -1117,7 +1090,7 @@ async function buyStreakFreeze() {
     await saveCurrentUser();
     
     updateDashboardData();
-    showToast('Streak Freeze purchased! ❄️', '✅');
+    showToast('Streak Freeze purchased! ', '');
 }
 
 
@@ -1221,16 +1194,16 @@ function renderDailyQuests() {
     if (q.isClaimed) {
         btnHtml = `<button class="btn btn-secondary btn-sm" disabled style="opacity:0.6; background:var(--bg-input);">Claimed ✓</button>`;
     } else if (isCompleted) {
-        btnHtml = `<button class="btn btn-primary btn-sm ripple-btn" onclick="claimQuestReward()" style="animation: pulse 2s infinite;">Claim ${q.reward} XP ✨</button>`;
+        btnHtml = `<button class="btn btn-primary btn-sm ripple-btn" onclick="claimQuestReward()" style="animation: pulse 2s infinite;">Claim ${q.reward} XP </button>`;
     } else {
         btnHtml = `<button class="btn btn-secondary btn-sm" disabled style="opacity:0.6;">Claim ${q.reward} XP</button>`;
     }
 
     container.innerHTML = `
-        <h3 style="margin-bottom:16px; margin-top:24px;">🎯 Daily Quests</h3>
+        <h3 style="margin-bottom:16px; margin-top:24px;"> Daily Quests</h3>
         <div class="glass-card flex items-center justify-between hover-elevate transition-all" style="margin-bottom:24px; flex-wrap:wrap; gap:16px; border-left: ${isCompleted && !q.isClaimed ? '3px solid var(--primary-500)' : '1px solid var(--border-color)'};">
           <div style="display:flex; gap:16px; align-items:center;">
-            <div style="width:48px; height:48px; border-radius:12px; background:rgba(99,102,241,0.15); display:flex; align-items:center; justify-content:center; font-size:1.5rem; filter: grayscale(${q.isClaimed ? '100%' : '0'});">🌟</div>
+            <div style="width:48px; height:48px; border-radius:12px; background:rgba(99,102,241,0.15); display:flex; align-items:center; justify-content:center; font-size:1.5rem; filter: grayscale(${q.isClaimed ? '100%' : '0'});"></div>
             <div>
               <h4 style="margin-bottom:4px; opacity: ${q.isClaimed ? '0.6' : '1'};">${q.title}</h4>
               <div class="progress-track" style="width:200px; height:6px; background:var(--bg-input); border-radius:4px; overflow:hidden;">
@@ -1336,7 +1309,7 @@ async function openModule(topicId) {
     const speechBtn = document.createElement('button');
     speechBtn.className = 'btn btn-ghost btn-sm';
     speechBtn.style.marginBottom = '16px';
-    speechBtn.innerHTML = '🔊 Read Aloud';
+    speechBtn.innerHTML = ' Read Aloud';
     speechBtn.onclick = () => speakText(lesson, true);
     contentEl.insertBefore(speechBtn, contentEl.firstChild);
 
@@ -1387,19 +1360,19 @@ async function generateLesson(topic) {
 function generateFallbackLesson(topic, level) {
     const lessons = {
         'cell-biology': `
-      <h1>🔬 Cell Biology & Structure</h1>
-      <h2>🎯 Introduction</h2>
+      <h1> Cell Biology & Structure</h1>
+      <h2> Introduction</h2>
       <p>Every living organism is made of <strong>cells</strong> — the fundamental units of life. Think of cells like LEGO bricks: just as complex structures are built from simple blocks, all life is built from cells.</p>
-      <h2>🔑 Key Concepts</h2>
+      <h2> Key Concepts</h2>
       <p><strong>Two Main Types:</strong></p>
       <ul style="color:var(--text-secondary); margin-left:20px; margin-bottom:16px;">
         <li><strong>Prokaryotic cells</strong> (bacteria) — Simple, no membrane-bound nucleus. DNA floats freely.</li>
         <li><strong>Eukaryotic cells</strong> (plants, animals, fungi) — Complex, DNA enclosed in a nucleus.</li>
       </ul>
       <div class="info-box">
-        <strong>🧠 Analogy:</strong> A prokaryotic cell is like a studio apartment (everything in one room), while a eukaryotic cell is like a house with separate rooms (organelles) for different functions.
+        <strong> Analogy:</strong> A prokaryotic cell is like a studio apartment (everything in one room), while a eukaryotic cell is like a house with separate rooms (organelles) for different functions.
       </div>
-      <h2>🏗️ Key Organelles</h2>
+      <h2> Key Organelles</h2>
       <ul style="color:var(--text-secondary); margin-left:20px; margin-bottom:16px;">
         <li><strong>Nucleus</strong> — The "brain" — stores DNA and controls cell activities</li>
         <li><strong>Mitochondria</strong> — The "powerhouse" — produces ATP energy</li>
@@ -1408,9 +1381,9 @@ function generateFallbackLesson(topic, level) {
         <li><strong>Golgi Apparatus</strong> — The "post office" — packages and ships proteins</li>
         <li><strong>Cell Membrane</strong> — The "security gate" — controls what enters/exits</li>
       </ul>
-      <h2>🌍 Real-World Applications</h2>
+      <h2> Real-World Applications</h2>
       <p>Understanding cells is the foundation of medicine, drug design, cancer research, and biotechnology. For example, understanding how cancer cells divide uncontrollably helps develop targeted therapies.</p>
-      <h2>📌 Key Takeaways</h2>
+      <h2> Key Takeaways</h2>
       <ul style="color:var(--text-secondary); margin-left:20px; margin-bottom:16px;">
         <li>Cells are the basic unit of all life</li>
         <li>Prokaryotic = simple, no nucleus; Eukaryotic = complex, has nucleus</li>
@@ -1418,14 +1391,14 @@ function generateFallbackLesson(topic, level) {
         <li>Plant cells have cell walls and chloroplasts; animal cells don't</li>
       </ul>
       <div class="info-box">
-        <strong>💡 Did You Know?</strong> Your body contains approximately 37.2 trillion cells, and they replace themselves at a rate of about 3.8 million cells per second!
+        <strong> Did You Know?</strong> Your body contains approximately 37.2 trillion cells, and they replace themselves at a rate of about 3.8 million cells per second!
       </div>
     `,
         'dna-structure': `
-      <h1>🧬 DNA Structure & Replication</h1>
-      <h2>🎯 Introduction</h2>
+      <h1> DNA Structure & Replication</h1>
+      <h2> Introduction</h2>
       <p>DNA (Deoxyribonucleic Acid) is the <strong>molecule of life</strong> — it carries the instructions for building and running every living organism. Think of it as the <strong>ultimate recipe book</strong> written in a 4-letter alphabet.</p>
-      <h2>🔑 Key Concepts</h2>
+      <h2> Key Concepts</h2>
       <p><strong>The Double Helix:</strong></p>
       <p>Discovered by Watson & Crick in 1953, DNA has a twisted ladder shape. The "rails" are sugar-phosphate backbones, and the "rungs" are base pairs:</p>
       <ul style="color:var(--text-secondary); margin-left:20px; margin-bottom:16px;">
@@ -1433,9 +1406,9 @@ function generateFallbackLesson(topic, level) {
         <li><strong>G</strong>uanine pairs with <strong>C</strong>ytosine (3 hydrogen bonds)</li>
       </ul>
       <div class="info-box">
-        <strong>🧠 Analogy:</strong> DNA is like a zipper. The two strands are the zipper tracks, and the base pairs are the interlocking teeth. To "read" the DNA, you unzip it!
+        <strong> Analogy:</strong> DNA is like a zipper. The two strands are the zipper tracks, and the base pairs are the interlocking teeth. To "read" the DNA, you unzip it!
       </div>
-      <h2>🔄 DNA Replication</h2>
+      <h2> DNA Replication</h2>
       <p>Before a cell divides, it must copy its DNA. This is <strong>semi-conservative replication</strong>:</p>
       <ol style="color:var(--text-secondary); margin-left:20px; margin-bottom:16px;">
         <li><strong>Helicase</strong> unwinds and separates the double helix</li>
@@ -1443,14 +1416,14 @@ function generateFallbackLesson(topic, level) {
         <li><strong>DNA Polymerase</strong> adds new nucleotides (5' → 3' direction)</li>
         <li><strong>Ligase</strong> joins the fragments (Okazaki fragments on lagging strand)</li>
       </ol>
-      <h2>📌 Key Takeaways</h2>
+      <h2> Key Takeaways</h2>
       <ul style="color:var(--text-secondary); margin-left:20px; margin-bottom:16px;">
         <li>DNA is a double helix with complementary base pairing (A-T, G-C)</li>
         <li>Replication is semi-conservative — each new DNA has one old + one new strand</li>
         <li>Key enzymes: Helicase, Primase, DNA Polymerase, Ligase</li>
       </ul>
       <div class="info-box">
-        <strong>💡 Did You Know?</strong> If you uncoiled all the DNA in one human cell and stretched it out, it would be about 2 meters long. All the DNA in your body would stretch to the sun and back 600 times!
+        <strong> Did You Know?</strong> If you uncoiled all the DNA in one human cell and stretched it out, it would be about 2 meters long. All the DNA in your body would stretch to the sun and back 600 times!
       </div>
     `
     };
@@ -1458,19 +1431,19 @@ function generateFallbackLesson(topic, level) {
     // Generic fallback for topics without specific content
     const fallback = `
     <h1>${topic.icon} ${topic.name}</h1>
-    <h2>🎯 Introduction</h2>
+    <h2> Introduction</h2>
     <p>${topic.description}</p>
     <div class="info-box">
-      <strong>💡 AI Insight:</strong> This module covers <strong>${topic.name}</strong> at the ${level === 'university' ? 'university' : 'school'} level. Our AI tutor is ready to help you explore deeper concepts and solve complex problems in this field.
+      <strong> AI Insight:</strong> This module covers <strong>${topic.name}</strong> at the ${level === 'university' ? 'university' : 'school'} level. Our AI tutor is ready to help you explore deeper concepts and solve complex problems in this field.
     </div>
-    <h2>🔑 What You'll Learn</h2>
+    <h2> What You'll Learn</h2>
     <ul style="color:var(--text-secondary); margin-left:20px; margin-bottom:16px;">
       <li>Core concepts and definitions</li>
       <li>How this applies in the selected subject</li>
       <li>Real-world examples and applications</li>
       <li>Key experiments and discoveries</li>
     </ul>
-    <h2>📖 Getting Started</h2>
+    <h2> Getting Started</h2>
     <p>Use the right panel to take a quiz after reading, or chat with the AI tutor for deeper explanations. Take the quiz on this topic to test your understanding and help the system personalize your learning journey!</p>
   `;
 
@@ -1580,7 +1553,7 @@ async function startQuiz(topicId) {
 
     // Safety check if no questions generated and no fallback exists
     if (!questions || questions.length === 0) {
-        showToast('Failed to generate a Quiz for this topic. Please try another.', '⚠️');
+        showToast('Failed to generate a Quiz for this topic. Please try another.', '');
         document.getElementById('quizSelectionArea').classList.remove('hidden');
         document.getElementById('quizResultsArea').classList.add('hidden');
         document.getElementById('quizPlayArea').classList.add('hidden');
@@ -1773,13 +1746,13 @@ async function finishQuiz() {
     // Feedback
     const feedback = document.getElementById('quizFeedback');
     if (scorePercent >= 90) {
-        feedback.innerHTML = '🌟 <strong>Outstanding!</strong> You\'ve mastered this topic. Keep up the amazing work!';
+        feedback.innerHTML = ' <strong>Outstanding!</strong> You\'ve mastered this topic. Keep up the amazing work!';
     } else if (scorePercent >= 70) {
-        feedback.innerHTML = '✅ <strong>Good job!</strong> You have a solid understanding. Review the questions you missed to strengthen your knowledge.';
+        feedback.innerHTML = ' <strong>Good job!</strong> You have a solid understanding. Review the questions you missed to strengthen your knowledge.';
     } else if (scorePercent >= 50) {
-        feedback.innerHTML = '📖 <strong>Keep going!</strong> You\'re on the right track. Revisit the lesson material and try again.';
+        feedback.innerHTML = ' <strong>Keep going!</strong> You\'re on the right track. Revisit the lesson material and try again.';
     } else {
-        feedback.innerHTML = '💪 <strong>Don\'t give up!</strong> Study the lesson carefully, use the AI tutor for doubts, and retake the quiz.';
+        feedback.innerHTML = ' <strong>Don\'t give up!</strong> Study the lesson carefully, use the AI tutor for doubts, and retake the quiz.';
     }
 }
 
@@ -1923,7 +1896,7 @@ async function sendChatMessage() {
     // Add user message
     container.innerHTML += `
     <div class="chat-message user">
-      <div class="chat-avatar">👤</div>
+      <div class="chat-avatar"></div>
       <div class="chat-bubble">${escapeHtml(message)}</div>
     </div>
   `;
@@ -1932,7 +1905,7 @@ async function sendChatMessage() {
     const typingId = 'typing-' + Date.now();
     container.innerHTML += `
     <div class="chat-message ai" id="${typingId}">
-      <div class="chat-avatar">🧬</div>
+      <div class="chat-avatar"></div>
       <div class="chat-bubble" style="display:flex;align-items:center;gap:8px;">
         <div class="spinner" style="width:18px;height:18px;border-width:2px;"></div>
         Thinking...
@@ -1974,7 +1947,7 @@ async function sendChatMessage() {
     const typingEl = document.getElementById(typingId);
     if (typingEl) {
         typingEl.innerHTML = `
-      <div class="chat-avatar">🧬</div>
+      <div class="chat-avatar"></div>
       <div class="chat-bubble">${formatMarkdown(response)}</div>
     `;
     }
@@ -1996,7 +1969,7 @@ async function triggerProactiveIntervention(emotion) {
     const typingId = 'typing-' + Date.now();
     container.innerHTML += `
     <div class="chat-message ai" id="${typingId}">
-      <div class="chat-avatar">🧬</div>
+      <div class="chat-avatar"></div>
       <div class="chat-bubble" style="display:flex;align-items:center;gap:8px;">
         <div class="spinner" style="width:18px;height:18px;border-width:2px;"></div>
         Adapting to your expression...
@@ -2016,7 +1989,7 @@ async function triggerProactiveIntervention(emotion) {
     const typingEl = document.getElementById(typingId);
     if (typingEl) {
         typingEl.innerHTML = `
-      <div class="chat-avatar">🧬</div>
+      <div class="chat-avatar"></div>
       <div class="chat-bubble" style="border: 1px solid var(--primary-500); background: rgba(16,185,129,0.05);">${formatMarkdown(response)}</div>
     `;
     }
@@ -2036,12 +2009,12 @@ function toggleVoiceAssistant() {
     VOICE_STATE.enabled = !VOICE_STATE.enabled;
     const icon = document.getElementById('voiceToggleIcon');
     if (VOICE_STATE.enabled) {
-        icon.textContent = '🔊';
-        showToast('Voice Assistant Enabled', '🔊');
+        icon.textContent = '';
+        showToast('Voice Assistant Enabled', '');
     } else {
-        icon.textContent = '🔇';
+        icon.textContent = '';
         if (VOICE_STATE.synth && VOICE_STATE.synth.speaking) VOICE_STATE.synth.cancel();
-        showToast('Voice Assistant Disabled', '🔇');
+        showToast('Voice Assistant Disabled', '');
     }
 }
 
@@ -2081,7 +2054,7 @@ const SPEECH_RECOGNITION_STATE = {
 
 function initSpeechRecognition() {
     if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-        showToast('Speech recognition not supported in this browser.', '⚠️');
+        showToast('Speech recognition not supported in this browser.', '');
         return;
     }
     
@@ -2099,7 +2072,7 @@ function initSpeechRecognition() {
         // Start 4-second silence timeout
         SPEECH_RECOGNITION_STATE.silenceTimer = setTimeout(() => {
             if (!SPEECH_RECOGNITION_STATE.hasReceivedSpeech && SPEECH_RECOGNITION_STATE.isListening) {
-                showToast('No speech detected. Microphone turned off.', '🎤');
+                showToast('No speech detected. Microphone turned off.', '');
                 if (SPEECH_RECOGNITION_STATE.recognition) SPEECH_RECOGNITION_STATE.recognition.stop();
             }
         }, 4000);
@@ -2163,7 +2136,7 @@ function stopSpeechRecognition() {
         SPEECH_RECOGNITION_STATE.silenceTimer = null;
     }
     const micIcon = document.getElementById('micIcon');
-    if(micIcon) micIcon.innerHTML = '🎤';
+    if(micIcon) micIcon.innerHTML = '';
 }
 
 if (window.speechSynthesis) {
@@ -2172,7 +2145,7 @@ if (window.speechSynthesis) {
 
 function changeTutorPersonality(personality) {
     APP_STATE.tutorPersonality = personality;
-    showToast(`AI Tutor is now in ${personality.charAt(0).toUpperCase() + personality.slice(1)} mode!`, '🎭');
+    showToast(`AI Tutor is now in ${personality.charAt(0).toUpperCase() + personality.slice(1)} mode!`, '');
 
     // Clear history to avoid mixing vibes too much
     APP_STATE.chatHistory = [];
@@ -2187,17 +2160,17 @@ function changeTutorPersonality(personality) {
 function generateFallbackChatResponse(question) {
     const q = question.toLowerCase();
     if (q.includes('dna') || q.includes('gene')) {
-        return "Great question about genetics! 🧬 DNA (Deoxyribonucleic Acid) is the molecule that carries genetic instructions. It has a double-helix structure with base pairs (Adenine-Thymine, Guanine-Cytosine). Learning about DNA is fundamental to modern biotechnology!";
+        return "Great question about genetics!  DNA (Deoxyribonucleic Acid) is the molecule that carries genetic instructions. It has a double-helix structure with base pairs (Adenine-Thymine, Guanine-Cytosine). Learning about DNA is fundamental to modern biotechnology!";
     } else if (q.includes('pcr') || q.includes('polymerase')) {
-        return "PCR (Polymerase Chain Reaction) is a powerful technique! 🔥 It amplifies specific DNA segments through cycles of denaturation, annealing, and extension. After 30 cycles, you get about a billion copies for analysis.";
+        return "PCR (Polymerase Chain Reaction) is a powerful technique!  It amplifies specific DNA segments through cycles of denaturation, annealing, and extension. After 30 cycles, you get about a billion copies for analysis.";
     } else if (q.includes('crispr') || q.includes('gene edit')) {
-        return "CRISPR-Cas9 is revolutionary! ✂️ It's a gene-editing tool that uses a guide RNA to direct the Cas9 enzyme to a specific DNA location for precise editing. It's used in medicine, agriculture, and research worldwide.";
+        return "CRISPR-Cas9 is revolutionary!  It's a gene-editing tool that uses a guide RNA to direct the Cas9 enzyme to a specific DNA location for precise editing. It's used in medicine, agriculture, and research worldwide.";
     } else if (q.includes('enzyme') || q.includes('protein')) {
-        return "Enzymes are biological catalysts! ⚙️ They speed up biochemical reactions by lowering activation energy. Each enzyme has an active site that fits specific substrates, crucial for industrial biotech processes.";
+        return "Enzymes are biological catalysts!  They speed up biochemical reactions by lowering activation energy. Each enzyme has an active site that fits specific substrates, crucial for industrial biotech processes.";
     } else if (q.includes('hello') || q.includes('hi') || q.includes('hey')) {
-        return "Hello! 👋 I'm your Quorix AI Tutor. I'm here to help with your selected subject, topic, and difficulty. What would you like to learn today?";
+        return "Hello!  I'm your Quorix AI Tutor. I'm here to help with your selected subject, topic, and difficulty. What would you like to learn today?";
     }
-    return "That's a great question! 🤔 Try exploring the **Learn** section for more details, or take a **Quiz** to test your current understanding. I'm here to help you master these concepts!";
+    return "That's a great question!  Try exploring the **Learn** section for more details, or take a **Quiz** to test your current understanding. I'm here to help you master these concepts!";
 }
 
 // ===== LEARNING PATH =====
@@ -2231,7 +2204,7 @@ function renderLearningPath() {
             <h4>${t.icon} ${t.name}</h4>
             ${isComplete ? '<span class="badge green">✓ Complete</span>' :
                 isCurrent ? '<span class="badge amber">→ Current</span>' :
-                    '<span class="badge" style="opacity:0.5;">🔒 Locked</span>'}
+                    '<span class="badge" style="opacity:0.5;"> Locked</span>'}
           </div>
           <div class="path-meta">
             <span>Difficulty: ${t.difficulty}</span>
@@ -2399,7 +2372,7 @@ function renderAnalytics() {
         strengths.innerHTML = strongTopics.length ? strongTopics.map(([id, score]) => {
             const t = topics.find(tp => tp.id === id);
             return `<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border-color);">
-        <span>${t?.icon || '📚'} ${t?.name || id}</span>
+        <span>${t?.icon || ''} ${t?.name || id}</span>
         <span class="badge green">${score}%</span>
       </div>`;
         }).join('') : '<p style="color:var(--text-muted);">Complete quizzes to see strengths!</p>';
@@ -2409,7 +2382,7 @@ function renderAnalytics() {
         weaknesses.innerHTML = weakTopics.length ? weakTopics.map(([id, score]) => {
             const t = topics.find(tp => tp.id === id);
             return `<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border-color);">
-        <span>${t?.icon || '📚'} ${t?.name || id}</span>
+        <span>${t?.icon || ''} ${t?.name || id}</span>
         <span class="badge amber">${score}%</span>
       </div>`;
         }).join('') : '<p style="color:var(--text-muted);">No weak areas found — great job!</p>';
@@ -2465,19 +2438,19 @@ async function generateDynamicCurriculum() {
                     BIOTECH_TOPICS[user.level].unshift(mod);
                 });
 
-                showToast(`Course on "${topicText}" generated!`, '✨');
+                showToast(`Course on "${topicText}" generated!`, '');
                 showDashboardSection('learn');
                 populateModuleTopics();
             } catch (parseError) {
                 console.error("Failed to parse curriculum JSON:", parseError, "\nRaw AI Response:", response);
-                showToast(`AI generated an invalid format. Please try again.`, '⚠️');
+                showToast(`AI generated an invalid format. Please try again.`, '');
             }
         } else {
-            showToast('Failed to connect to local AI.', '❌');
+            showToast('Failed to connect to local AI.', '');
         }
     } catch (e) {
         console.error("Curriculum generation error:", e);
-        showToast('Error generating curriculum. Is Ollama running?', '❌');
+        showToast('Error generating curriculum. Is Ollama running?', '');
     } finally {
         // Restore UI state
         input.disabled = false;
@@ -2505,7 +2478,7 @@ function renderFlashcardDecks() {
     grid.innerHTML = decks.map(topicId => {
         const biologyTopics = typeof BIOTECH_TOPICS !== 'undefined' ? (BIOTECH_TOPICS[user.level] || []) : [];
         const allTopics = typeof MIXED_INTEREST_TOPICS !== 'undefined' ? [...MIXED_INTEREST_TOPICS, ...biologyTopics] : biologyTopics;
-        const topic = allTopics.find(t => t.id === topicId) || { name: topicId, icon: '📇' };
+        const topic = allTopics.find(t => t.id === topicId) || { name: topicId, icon: '' };
         const deck = user.flashcardDecks[topicId];
         return `
       <div class="glass-card" style="cursor:pointer; display:flex; flex-direction:column; align-items:center; text-align:center;" onclick="openFlashcardDeck('${topicId}')">
@@ -2522,7 +2495,7 @@ async function generateFlashcards() {
     const topicId = APP_STATE.currentModuleTopic?.id;
 
     if (!topicId || !APP_STATE.lastLessonText) {
-        showToast('Please read a lesson first.', '⚠️');
+        showToast('Please read a lesson first.', '');
         return;
     }
 
@@ -2535,7 +2508,7 @@ async function generateFlashcards() {
     let cards = null;
 
     if (APP_STATE.ollamaModel) {
-        showToast('Generating smart flashcards...', '⚙️');
+        showToast('Generating smart flashcards...', '');
         try {
             const studyContext = {
                 ...getSelectedStudyContext(),
@@ -2555,14 +2528,14 @@ async function generateFlashcards() {
                     throw new Error("Parsed JSON is not an array");
                 }
             } else {
-                showToast('API issue, using standard deck.', '⚠️');
+                showToast('API issue, using standard deck.', '');
             }
         } catch (e) {
             console.error('Flashcard error', e);
-            showToast('AI failed, using standard deck.', '⚠️');
+            showToast('AI failed, using standard deck.', '');
         }
     } else {
-        showToast('No API key attached, using standard deck.', '⚠️');
+        showToast('No API key attached, using standard deck.', '');
     }
 
     // Fallback if AI generation failed or wasn't attempted
@@ -2618,11 +2591,11 @@ async function generateFlashcards() {
     }
 
     await saveCurrentUser();
-    showToast('Flashcards generated!', '✅');
+    showToast('Flashcards generated!', '');
 
     if (btn) {
         btn.disabled = false;
-        btn.innerHTML = 'Generate Flashcards 📇';
+        btn.innerHTML = 'Generate Flashcards ';
     }
 
     showDashboardSection('flashcards');
@@ -2666,17 +2639,17 @@ function updateFlashcardUI() {
         if (hint) hint.classList.add('hidden');
 
         document.getElementById('flashcardFrontText').innerHTML = `
-            <div style="font-size:3.5rem; margin-bottom:16px;">🎊</div>
+            <div style="font-size:3.5rem; margin-bottom:16px;"></div>
             <h3 style="margin-bottom:12px; font-size:1.8rem; color:var(--success);">All Caught Up!</h3>
             <p style="font-size:1rem; color:var(--text-secondary); margin-bottom:24px; max-width:280px; margin-left:auto; margin-right:auto;">
                 Excellent work! You've mastered these concepts for now.
             </p>
             <button class="btn btn-primary" onclick="resetFlashcardDeck(event)" 
                 style="padding:12px 24px; border-radius:14px; font-weight:800; font-size:1.1rem; box-shadow:0 0 20px rgba(16,185,129,0.3); border:none; cursor:pointer;">
-                ✨ Reset Deck (10 Credits)
+                 Reset Deck (10 Credits)
             </button>
         `;
-        document.getElementById('flashcardBackText').innerHTML = 'Keep pushing your limits! 🧬';
+        document.getElementById('flashcardBackText').innerHTML = 'Keep pushing your limits! ';
         controls.classList.add('hidden');
         counter.innerText = '0 cards remaining';
 
@@ -2732,13 +2705,13 @@ function resetFlashcardDeck(event) {
     const topicName = APP_STATE.currentModuleTopic?.name || "this topic";
 
     if (!user || !topicId) {
-        showToast('System error: Topic not found.', '❌');
+        showToast('System error: Topic not found.', '');
         return;
     }
 
     const cost = 10;
     if (user.xp < cost) {
-        showToast(`Need ${cost} credits. You have ${user.xp}.`, '⚠️');
+        showToast(`Need ${cost} credits. You have ${user.xp}.`, '');
         return;
     }
 
@@ -2761,7 +2734,7 @@ function resetFlashcardDeck(event) {
         }
 
         saveCurrentUser();
-        showToast('Deck reset! Happy studying. 📇✨', '✅');
+        showToast('Deck reset! Happy studying. ', '');
         updateFlashcardUI();
     }
 }
@@ -2865,7 +2838,7 @@ function backToFlashcardDecks() {
 // ===== EXPORT =====
 function exportNotes() {
     if (!APP_STATE.lastLessonText || !APP_STATE.currentModuleTopic) {
-        showToast('Read a lesson first to download it.', '⚠️');
+        showToast('Read a lesson first to download it.', '');
         return;
     }
     const topic = APP_STATE.currentModuleTopic.name;
@@ -2881,7 +2854,7 @@ function exportNotes() {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    showToast('Notes downloaded! 📥');
+    showToast('Notes downloaded! ');
 }
 
 // ===== PROFILE =====
@@ -2895,26 +2868,26 @@ function saveProfile() {
     const user = APP_STATE.currentUser;
     const newName = document.getElementById('profileName').value.trim();
     if (!newName) {
-        showToast('Please enter a valid name.', '⚠️');
+        showToast('Please enter a valid name.', '');
         return;
     }
     user.name = newName;
     saveCurrentUser();
     updateDashboardData();
-    showToast('Account renamed successfully! ✏️', '✅');
+    showToast('Account renamed successfully! ', '');
 }
 
 function deleteLocalAccount() {
     const user = APP_STATE.currentUser;
     if (!user) return;
 
-    if (confirm(`⚠️ DANGER: Are you sure you want to delete the account "${user.name}"? This will permanently remove all progress and data from this device.`)) {
+    if (confirm(` DANGER: Are you sure you want to delete the account "${user.name}"? This will permanently remove all progress and data from this device.`)) {
         const email = user.email;
         const users = JSON.parse(localStorage.getItem('bionexus_users') || '{}');
         delete users[email];
         localStorage.setItem('bionexus_users', JSON.stringify(users));
 
-        showToast('Account deleted successfully.', '🗑️');
+        showToast('Account deleted successfully.', '');
         handleLogout();
     }
 }
@@ -2929,7 +2902,7 @@ function switchUser(email) {
         APP_STATE.chatHistory = [];
         APP_STATE.lastLessonText = '';
 
-        showToast(`Switched to ${users[email].name.split(' ')[0]}! 👋`, '👥');
+        showToast(`Switched to ${users[email].name.split(' ')[0]}! `, '');
 
         if (!users[email].setupComplete) {
             navigateTo('setup');
@@ -2996,7 +2969,7 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
-function showToast(message, icon = '✅') {
+function showToast(message, icon = '') {
     const toast = document.getElementById('toast');
     document.getElementById('toastMsg').textContent = message;
     document.getElementById('toastIcon').textContent = icon;
@@ -3048,7 +3021,7 @@ async function addXP(amount, reason) {
 
     // Update UI if visible
     if (document.getElementById('sidebarXp')) {
-        document.getElementById('sidebarXp').textContent = `✨ ${APP_STATE.currentUser.xp} XP`;
+        document.getElementById('sidebarXp').textContent = ` ${APP_STATE.currentUser.xp} XP`;
     }
 
     const navDot = document.getElementById('navNotificationDot');
@@ -3072,9 +3045,9 @@ async function addXP(amount, reason) {
                 confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } }));
             }, 250);
         }
-        showToast(`Incredible! +${amount} XP: ${reason} 🎉`, '🌟');
+        showToast(`Incredible! +${amount} XP: ${reason} `, '');
     } else {
-        showToast(`+${amount} XP: ${reason}`, '✨');
+        showToast(`+${amount} XP: ${reason}`, '');
     }
 }
 
@@ -3083,7 +3056,7 @@ function spendCredits(amount, reason) {
     if (!user) return false;
 
     if (user.xp < amount) {
-        showToast(`Insufficient credits. You need ${amount} XP.`, '⚠️');
+        showToast(`Insufficient credits. You need ${amount} XP.`, '');
         return false;
     }
 
@@ -3098,17 +3071,17 @@ function spendCredits(amount, reason) {
 
     // Update UI
     if (document.getElementById('sidebarXp')) {
-        document.getElementById('sidebarXp').textContent = `✨ ${user.xp} XP`;
+        document.getElementById('sidebarXp').textContent = ` ${user.xp} XP`;
     }
     const navXpBtn = document.querySelector('button[onclick="toggleProfileMenu(event)"]');
     if (navXpBtn) {
-        navXpBtn.innerHTML = `👤 ${user.name.split(' ')[0].toLowerCase()} ✨ ${user.xp} XP`;
+        navXpBtn.innerHTML = ` ${user.name.split(' ')[0].toLowerCase()}  ${user.xp} XP`;
     }
 
     const navDot = document.getElementById('navNotificationDot');
     if (navDot) navDot.style.display = 'block';
 
-    showToast(`Spent ${amount} Credits: ${reason}`, '⚖️');
+    showToast(`Spent ${amount} Credits: ${reason}`, '');
     return true;
 }
 
@@ -3121,7 +3094,7 @@ function renderCreditHistory() {
     if (!user.activity || user.activity.length === 0) {
         list.innerHTML = `
             <div class="empty-state" style="padding:48px;">
-                <div class="empty-icon">🌟</div>
+                <div class="empty-icon"></div>
                 <h4>No XP earned yet</h4>
                 <p>Start learning to build your credit history!</p>
             </div>
@@ -3133,10 +3106,10 @@ function renderCreditHistory() {
 
     list.innerHTML = allActivities.map(a => {
         let isXp = a.type === 'system';
-        let icon = '💬';
-        if (a.type === 'lesson') icon = '📖';
-        if (a.type === 'quiz') icon = '📝';
-        if (a.type === 'system') icon = '🌟';
+        let icon = '';
+        if (a.type === 'lesson') icon = '';
+        if (a.type === 'quiz') icon = '';
+        if (a.type === 'system') icon = '';
 
         // Determine or extract XP
         let xpAmountHtml = '';
@@ -3194,9 +3167,9 @@ function renderLeaderboard() {
     let html = '';
     leaderboardUsers.forEach((user, index) => {
         let rankIcon = `#${index + 1}`;
-        if (index === 0) rankIcon = '🥇';
-        if (index === 1) rankIcon = '🥈';
-        if (index === 2) rankIcon = '🥉';
+        if (index === 0) rankIcon = '';
+        if (index === 1) rankIcon = '';
+        if (index === 2) rankIcon = '';
 
         const isMe = user.isCurrentUser;
 
@@ -3211,7 +3184,7 @@ function renderLeaderboard() {
                 </div>
             </div>
             <div style="display:flex; align-items:center; gap:16px;">
-                <div style="font-weight:800; font-size:1.1rem; color:var(--primary-400);">✨ ${user.xp} XP</div>
+                <div style="font-weight:800; font-size:1.1rem; color:var(--primary-400);"> ${user.xp} XP</div>
                 ${!isMe ? `<button class="btn btn-ghost btn-sm" onclick="switchUser('${user.email}')" style="padding:4px 12px; font-size:0.75rem; border:1px solid var(--border-color);">Switch</button>` : ''}
             </div>
         </div>
@@ -3221,7 +3194,7 @@ function renderLeaderboard() {
     if (leaderboardUsers.length === 0) {
         html = `
         <div style="padding:40px; text-align:center; color:var(--text-muted);">
-            <div style="font-size:3rem; margin-bottom:16px;">🏆</div>
+            <div style="font-size:3rem; margin-bottom:16px;"></div>
             <h4>No students yet</h4>
             <p>Register and earn XP to appear on the leaderboard!</p>
         </div>
@@ -3307,12 +3280,12 @@ function clearChatHistory() {
         if (chatMessages) {
             chatMessages.innerHTML = `
                 <div class="chat-message ai">
-                    <div class="chat-avatar">🌿</div>
-                    <div class="chat-bubble">History cleared! 👋 How can I help with your selected subject today?</div>
+                    <div class="chat-avatar"></div>
+                    <div class="chat-bubble">History cleared!  How can I help with your selected subject today?</div>
                 </div>
             `;
         }
-        showToast('Chat history cleared! 🧹', '✨');
+        showToast('Chat history cleared! ', '');
     }
 }
 
@@ -3328,7 +3301,7 @@ function exportUserData() {
     downloadAnchorNode.click();
     downloadAnchorNode.remove();
 
-    showToast('Data exported successfully! 📤', '📦');
+    showToast('Data exported successfully! ', '');
 }
 
 function showAddUserModal() {
@@ -3350,23 +3323,23 @@ function handleQuickSignup(e) {
     const password = document.getElementById('quickPassword').value;
 
     if (!name || !email || !password) {
-        showToast('Please fill out all fields.', '⚠️');
+        showToast('Please fill out all fields.', '');
         return;
     }
 
     if (!email.includes('@') || !email.includes('.')) {
-        showToast('Please enter a valid email address.', '⚠️');
+        showToast('Please enter a valid email address.', '');
         return;
     }
 
     if (password.length < 6) {
-        showToast('Password must be at least 6 characters.', '⚠️');
+        showToast('Password must be at least 6 characters.', '');
         return;
     }
 
     const users = JSON.parse(localStorage.getItem('bionexus_users') || '{}');
     if (users[email]) {
-        showToast('Account already exists for this email.', '⚠️');
+        showToast('Account already exists for this email.', '');
         return;
     }
 
@@ -3395,5 +3368,5 @@ function handleQuickSignup(e) {
     hideAddUserModal();
     switchUser(email);
 
-    showToast('New student added! Welcome to the lab. 🎉', '✅');
+    showToast('New student added! Welcome to the lab. ', '');
 }

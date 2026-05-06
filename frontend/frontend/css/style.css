@@ -1,4 +1,4 @@
-/* ============================================
+﻿/* ============================================
    BioQuorix — Design System
    Global Styles, Variables, Components, Themes
    ============================================ */
@@ -115,7 +115,7 @@ body.light-mode {
 html {
   scroll-behavior: auto;
   /* Removed smooth scroll for instant snappy movement */
-  font-size: 16px;
+  font-size: 18px;
 }
 
 body {
@@ -2273,7 +2273,7 @@ a:hover {
 }
 
 /* ============================================
-   ACCESSIBILITY � Phase 4.5
+   ACCESSIBILITY � Phase 4.5
    ============================================ */
 
 :focus-visible {
@@ -2329,3 +2329,52 @@ textarea:focus-visible {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-10px); }
 }
+
+/* â”€â”€ Document Library â€” appended to existing styles.css â”€â”€ */
+.doc-layout { display: grid; grid-template-columns: 320px 1fr; gap: 20px; height: calc(100vh - 200px); }
+.doc-sidebar { display: flex; flex-direction: column; gap: 12px; overflow-y: auto; }
+.upload-area { padding: 28px; text-align: center; cursor: pointer; border: 2px dashed rgba(255,255,255,0.25);
+  transition: border-color .2s; }
+.upload-area:hover, .upload-area.drag-over { border-color: rgba(255,255,255,0.6); }
+.upload-icon { font-size: 32px; margin-bottom: 8px; }
+.upload-label { font-weight: 500; margin-bottom: 4px; }
+.upload-hint { font-size: 12px; opacity: 0.6; }
+.doc-item { display: flex; align-items: center; gap: 12px; padding: 12px; cursor: pointer;
+  border: 1px solid rgba(255,255,255,0.1); transition: border-color .15s; border-radius: 12px; }
+.doc-item:hover, .doc-item.active { border-color: rgba(255,255,255,0.35); }
+.doc-name { font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 200px; }
+.doc-meta { font-size: 11px; opacity: 0.6; margin-top: 2px; }
+.doc-status { text-transform: capitalize; }
+.status-ready { color: #4ade80; }
+.status-processing { color: #facc15; }
+.status-failed { color: #f87171; }
+.doc-chat { display: flex; flex-direction: column; overflow: hidden; }
+.doc-chat-header { padding: 14px 18px; border-bottom: 1px solid rgba(255,255,255,0.1); font-weight: 500; font-size: 14px;
+  display: flex; align-items: center; justify-content: space-between; }
+.chat-messages { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 14px; }
+.chat-msg { display: flex; gap: 10px; }
+.user-msg { justify-content: flex-end; }
+.user-msg .msg-bubble { background: rgba(99,102,241,0.3); border-radius: 16px 16px 4px 16px; padding: 10px 14px; max-width: 70%; font-size: 14px; }
+.ai-msg .msg-bubble { background: rgba(255,255,255,0.07); border-radius: 16px 16px 16px 4px; padding: 10px 14px; max-width: 80%; font-size: 14px; line-height: 1.6; }
+.ai-avatar { width: 28px; height: 28px; border-radius: 50%; background: rgba(99,102,241,0.4); display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
+.msg-body { display: flex; flex-direction: column; gap: 8px; max-width: 80%; }
+.system-msg .msg-bubble { background: rgba(255,255,255,0.04); border-radius: 8px; padding: 8px 12px; font-size: 12px; opacity: 0.7; margin: 0 auto; }
+.citation-block { background: rgba(255,255,255,0.04); border-radius: 10px; padding: 10px 14px; border-left: 3px solid rgba(99,102,241,0.5); }
+.citation-header { font-size: 11px; font-weight: 600; text-transform: uppercase; opacity: 0.7; margin-bottom: 6px; letter-spacing: 0.5px; }
+.citation-item { display: flex; gap: 8px; margin-top: 4px; font-size: 12px; }
+.citation-ref { color: #818cf8; font-weight: 500; white-space: nowrap; }
+.citation-excerpt { opacity: 0.7; font-style: italic; }
+.chat-input-row { display: flex; gap: 10px; padding: 14px 18px; border-top: 1px solid rgba(255,255,255,0.1); }
+.chat-input-row textarea { flex: 1; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 12px; color: inherit; padding: 10px 14px; font-family: inherit; font-size: 13px; resize: none; outline: none; }
+.chat-input-row textarea:focus { border-color: rgba(255,255,255,0.35); }
+.upload-meta { display: flex; gap: 10px; padding: 12px; }
+.quorix-select { flex: 1; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.15);
+  color: inherit; border-radius: 8px; padding: 8px 10px; font-size: 12px; outline: none; }
+.typing span { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,0.5);
+  animation: typing-bounce 1.2s infinite; margin: 0 2px; }
+.typing span:nth-child(2) { animation-delay: 0.2s; }
+.typing span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes typing-bounce { 0%,60%,100% { transform: translateY(0); } 30% { transform: translateY(-6px); } }
+@media (max-width: 768px) { .doc-layout { grid-template-columns: 1fr; } }
+

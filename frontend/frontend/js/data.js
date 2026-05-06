@@ -8,7 +8,7 @@ const BIOTECH_TOPICS = {
     {
       id: 'cell-biology',
       name: 'Cell Biology & Structure',
-      icon: '🔬',
+      icon: '',
       description: 'Prokaryotic & eukaryotic cells, organelles, cell membrane',
       difficulty: 'beginner',
       prereqs: [],
@@ -17,7 +17,7 @@ const BIOTECH_TOPICS = {
     {
       id: 'dna-structure',
       name: 'DNA Structure & Replication',
-      icon: '🧬',
+      icon: '',
       description: 'Double helix, base pairing, DNA replication process',
       difficulty: 'beginner',
       prereqs: ['cell-biology'],
@@ -26,7 +26,7 @@ const BIOTECH_TOPICS = {
     {
       id: 'central-dogma',
       name: 'Central Dogma of Molecular Biology',
-      icon: '📜',
+      icon: '',
       description: 'Transcription, translation, genetic code',
       difficulty: 'intermediate',
       prereqs: ['dna-structure'],
@@ -35,7 +35,7 @@ const BIOTECH_TOPICS = {
     {
       id: 'genetics-inheritance',
       name: 'Genetics & Inheritance',
-      icon: '🧪',
+      icon: '',
       description: 'Mendelian genetics, crosses, pedigree analysis',
       difficulty: 'intermediate',
       prereqs: ['central-dogma'],
@@ -44,7 +44,7 @@ const BIOTECH_TOPICS = {
     {
       id: 'biotechnology-intro',
       name: 'Introduction to Biotechnology',
-      icon: '⚗️',
+      icon: '',
       description: 'What is biotech, applications, history',
       difficulty: 'beginner',
       prereqs: [],
@@ -53,7 +53,7 @@ const BIOTECH_TOPICS = {
     {
       id: 'rdna-technology',
       name: 'Recombinant DNA Technology',
-      icon: '✂️',
+      icon: '',
       description: 'Restriction enzymes, cloning vectors, gene cloning',
       difficulty: 'intermediate',
       prereqs: ['dna-structure', 'biotechnology-intro'],
@@ -62,7 +62,7 @@ const BIOTECH_TOPICS = {
     {
       id: 'pcr',
       name: 'PCR & Gel Electrophoresis',
-      icon: '🔥',
+      icon: '',
       description: 'Polymerase chain reaction, agarose gel, DNA analysis',
       difficulty: 'intermediate',
       prereqs: ['dna-structure'],
@@ -71,7 +71,7 @@ const BIOTECH_TOPICS = {
     {
       id: 'microorganisms',
       name: 'Microorganisms in Biotechnology',
-      icon: '🦠',
+      icon: '',
       description: 'Bacteria, yeast, fermentation, industrial applications',
       difficulty: 'beginner',
       prereqs: ['cell-biology'],
@@ -80,7 +80,7 @@ const BIOTECH_TOPICS = {
     {
       id: 'plant-tissue-culture',
       name: 'Plant Tissue Culture',
-      icon: '🌱',
+      icon: '',
       description: 'Micropropagation, somatic embryogenesis, applications',
       difficulty: 'intermediate',
       prereqs: ['cell-biology', 'biotechnology-intro'],
@@ -89,7 +89,7 @@ const BIOTECH_TOPICS = {
     {
       id: 'bioethics',
       name: 'Bioethics & Biosafety',
-      icon: '⚖️',
+      icon: '',
       description: 'GMO debates, ethical issues, biosafety guidelines',
       difficulty: 'beginner',
       prereqs: ['biotechnology-intro'],
@@ -100,7 +100,7 @@ const BIOTECH_TOPICS = {
     {
       id: 'molecular-biology',
       name: 'Advanced Molecular Biology',
-      icon: '🧬',
+      icon: '',
       description: 'Gene regulation, epigenetics, chromatin structure',
       difficulty: 'intermediate',
       prereqs: [],
@@ -109,7 +109,7 @@ const BIOTECH_TOPICS = {
     {
       id: 'genomics',
       name: 'Genomics & Proteomics',
-      icon: '🖥️',
+      icon: '',
       description: 'Genome sequencing, NGS, proteome analysis, bioinformatics',
       difficulty: 'advanced',
       prereqs: ['molecular-biology'],
@@ -118,7 +118,7 @@ const BIOTECH_TOPICS = {
     {
       id: 'genetic-engineering',
       name: 'Genetic Engineering',
-      icon: '✂️',
+      icon: '',
       description: 'CRISPR-Cas9, gene editing, transgenic organisms',
       difficulty: 'advanced',
       prereqs: ['molecular-biology'],
@@ -127,7 +127,7 @@ const BIOTECH_TOPICS = {
     {
       id: 'enzyme-technology',
       name: 'Enzyme Technology',
-      icon: '⚙️',
+      icon: '',
       description: 'Enzyme kinetics, immobilization, industrial enzymes',
       difficulty: 'intermediate',
       prereqs: [],
@@ -136,7 +136,7 @@ const BIOTECH_TOPICS = {
     {
       id: 'fermentation-tech',
       name: 'Fermentation Technology',
-      icon: '🏭',
+      icon: '',
       description: 'Bioreactor design, upstream/downstream processing',
       difficulty: 'intermediate',
       prereqs: ['enzyme-technology'],
@@ -145,7 +145,7 @@ const BIOTECH_TOPICS = {
     {
       id: 'immunology',
       name: 'Immunology & Immunotechnology',
-      icon: '🛡️',
+      icon: '',
       description: 'Immune system, antibodies, ELISA, monoclonal antibodies',
       difficulty: 'advanced',
       prereqs: ['molecular-biology'],
@@ -154,7 +154,7 @@ const BIOTECH_TOPICS = {
     {
       id: 'bioinformatics',
       name: 'Bioinformatics',
-      icon: '💻',
+      icon: '',
       description: 'Sequence alignment, BLAST, phylogenetics, databases',
       difficulty: 'advanced',
       prereqs: ['genomics'],
@@ -163,7 +163,7 @@ const BIOTECH_TOPICS = {
     {
       id: 'environmental-biotech',
       name: 'Environmental Biotechnology',
-      icon: '🌍',
+      icon: '',
       description: 'Bioremediation, waste treatment, biofuels',
       difficulty: 'intermediate',
       prereqs: [],
@@ -172,7 +172,7 @@ const BIOTECH_TOPICS = {
     {
       id: 'pharmaceutical-biotech',
       name: 'Pharmaceutical Biotechnology',
-      icon: '💊',
+      icon: '',
       description: 'Drug discovery, biosimilars, vaccine development',
       difficulty: 'advanced',
       prereqs: ['immunology', 'genetic-engineering'],
@@ -181,7 +181,7 @@ const BIOTECH_TOPICS = {
     {
       id: 'stem-cells',
       name: 'Stem Cells & Regenerative Medicine',
-      icon: '🧫',
+      icon: '',
       description: 'iPSCs, tissue engineering, therapeutic applications',
       difficulty: 'advanced',
       prereqs: ['molecular-biology'],
@@ -818,18 +818,18 @@ Return ONLY a JSON array:
       personalityInstruction = `PERSONA: You are a distinguished University Professor. 
 - Tone: Academic, formal, thorough, and highly authoritative. 
 - Use complex terminology correctly. 
-- No emojis except maybe a single 📖 or 🔬.
+- No emojis except maybe a single  or .
 - Structure your answer like a mini-lecture.`;
     } else if (personality === 'comrade') {
       personalityInstruction = `PERSONA: You are an enthusiastic, egalitarian biotech revolutionary.
 - Tone: Passionate, collective, and inspiring. 
 - Use words like "Comrade", "Our collective knowledge", "For the people".
-- Emojis: ✊🛠️🌿🚩.
+- Emojis: .
 - Focus on how biotech serves the collective good and accessibility.`;
     } else {
       personalityInstruction = `PERSONA: You are a fun, approachable, and energy-filled biotech guide.
 - Tone: Friendly, visually engaging, and highly encouraging. 
-- Use plenty of relevant emojis throughout 🧬🧪🌿✨.
+- Use plenty of relevant emojis throughout .
 - Use analogies and excitement!`;
     }
 
@@ -868,7 +868,7 @@ Return ONLY a valid JSON array matching this format (no markdown code blocks aro
   {
     "id": "unique-kebab-case-id",
     "name": "Sub-topic Name",
-    "icon": "🧪",
+    "icon": "",
     "description": "Short description of what this covers",
     "difficulty": "intermediate",
     "prereqs": [],
@@ -980,7 +980,7 @@ Return ONLY a valid JSON array matching this format:
   {
     "id": "unique-kebab-case-id",
     "name": "Sub-topic Name",
-    "icon": "📘",
+    "icon": "",
     "description": "Short description of what this covers",
     "difficulty": "intermediate",
     "prereqs": [],

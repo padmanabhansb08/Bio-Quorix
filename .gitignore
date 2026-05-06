@@ -8,3 +8,6 @@ npm-debug.log*
 .vscode/
 logs/
 data/
+ 
+uploads/
+vectra-index/

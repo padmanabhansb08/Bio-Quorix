@@ -25,6 +25,7 @@ const { sanitizePrompt, moderateResponse } = require('./middleware/promptGuard')
 const { generateCompletion } = require('./services/aiService');
 const { validate, signupSchema, loginSchema, updateUserSchema, activitySchema, quizRecordSchema, flashcardSyncSchema, aiGenerateSchema, pushSubscriptionSchema } = require('./utils/validators');
 const { logger, morganStream } = require('./utils/logger');
+const { authenticateToken } = require('./middleware/auth');
 
 // Run database migrations before anything else
 runMigrations(db);
@@ -51,10 +52,15 @@ if (vapidPublicKey && vapidPrivateKey) {
 app.use(helmet({
     contentSecurityPolicy: {
         directives: {
-            ...helmet.contentSecurityPolicy.getDefaultDirectives(),
-            "script-src": ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://cdn.jsdelivr.net", "https://unpkg.com"],
-            "img-src": ["'self'", "data:", "https:", "http:"],
-            "connect-src": ["'self'", "https://api.groq.com", "https://api.resend.com"]
+            defaultSrc: ["'self'"],
+            scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://cdn.jsdelivr.net", "https://unpkg.com"],
+            scriptSrcAttr: ["'unsafe-inline'"],   // Allow onclick/onchange/etc. inline handlers
+            styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://cdn.jsdelivr.net"],
+            fontSrc: ["'self'", "https://fonts.gstatic.com", "data:"],
+            imgSrc: ["'self'", "data:", "https:", "http:"],
+            connectSrc: ["'self'", "https://api.groq.com", "https://api.resend.com"],
+            workerSrc: ["'self'", "blob:"],
+            frameSrc: ["'none'"],
         }
     }
 }));
@@ -170,24 +176,7 @@ cron.schedule('0 18 * * *', async () => {
 app.use(express.static(path.join(__dirname, 'frontend', 'frontend')));
 
 // Middleware for auth — enhanced with auto-refresh detection
-const authenticateToken = (req, res, next) => {
-    const authHeader = req.headers['authorization'];
-    const token = authHeader && authHeader.split(' ')[1];
 
-    if (!token) return res.status(401).json({ error: 'Unauthorized' });
-
-    const decoded = verifyAccessToken(token);
-    if (!decoded) return res.status(403).json({ error: 'Forbidden' });
-
-    req.user = decoded;
-
-    // If token is near expiry, hint the client to refresh
-    if (isTokenNearExpiry(token, 2)) {
-        res.setHeader('X-Token-Expiring', 'true');
-    }
-
-    next();
-};
 
 // --- Auth Routes ---
 
@@ -495,6 +484,9 @@ app.post('/api/sync/offline-reviews', authenticateToken, (req, res) => {
 });
 
 // --- Global Error Handler ---
+const documentsRouter = require('./routes/documents.js');
+app.use('/api/documents', documentsRouter);
+
 app.use((err, req, res, next) => {
     console.error(`[Error] ${err.stack}`);
     const statusCode = err.statusCode || 500;
