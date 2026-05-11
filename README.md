@@ -48,7 +48,7 @@ git clone https://github.com/padmanabhansb08/Bio-Quorix.git
 cd Quorix-AI
 
 # Install dependencies
-npm install
+npm installxxxsxz
 
 # Setup environment
 cp .env.example .env
