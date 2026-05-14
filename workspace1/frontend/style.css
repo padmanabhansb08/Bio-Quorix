@@ -1418,7 +1418,6 @@ button:active {
   position: relative;
   overflow: hidden;
 }
-
 .subject-card::before {
   content: "";
 
@@ -1436,6 +1435,8 @@ button:active {
   opacity: 0;
 
   transition: 0.3s ease;
+
+  pointer-events: none;
 }
 
 .subject-card:hover::before {
@@ -1684,4 +1685,7 @@ button:active {
   font-size: 1.4rem;
 
   color: var(--accent-strong);
+}
+body.light-mode .sidebar {
+    color: white;
 }

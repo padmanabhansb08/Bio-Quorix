@@ -423,9 +423,11 @@ function renderSubjects() {
       ".delete-btn"
     ).addEventListener(
       "click",
-      () => {
+      (e) => {
 
-        subjects.splice(index, 1);
+    e.stopPropagation();
+
+    subjects.splice(index, 1);
 
 
         localStorage.setItem(
@@ -567,7 +569,6 @@ function openWorkspace(subjectName) {
   updateOverview();
 
 }
-
 
 // BACK
 
