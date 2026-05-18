@@ -1,0 +1,844 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BioQuorix Workspace</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+    rel="stylesheet"
+  />
+
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+  />
+
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body class="dark-mode">
+
+  <div class="app-shell">
+
+    <!-- SIDEBAR -->
+
+    <aside class="sidebar" id="sidebar">
+
+  <!-- TOP -->
+
+  <div class="sidebar-top">
+
+    <div class="sidebar-header">
+
+      <div class="brand">
+
+        <div class="brand-glow"></div>
+
+        <div>
+          <h2>BioQuorix</h2>
+          <span>Workspace</span>
+        </div>
+
+      </div>
+
+
+      <!-- THEME BUTTON -->
+
+      <button class="theme-icon-btn" id="themeToggle">
+
+        <i class="fa-solid fa-moon" id="themeIcon"></i>
+
+      </button>
+
+    </div>
+
+
+    <!-- NAVIGATION -->
+
+    <nav class="sidebar-nav">
+
+   <button
+  class="nav-item active"
+  id="dashboardNav"
+>
+  Dashboard
+</button>
+
+
+<button
+  class="nav-item"
+  id="subjectsNav"
+>
+  Subjects
+</button>
+
+
+<button
+  class="nav-item"
+  id="flashcardsNav"
+>
+  Flashcards
+</button>
+
+
+<button
+  class="nav-item"
+  id="analyticsNav"
+>
+  Analytics
+</button>
+
+
+<button
+  class="nav-item"
+  id="settingsNav"
+>
+  Settings
+</button>
+    </nav>
+
+  </div>
+
+</aside>
+
+    <!-- MAIN -->
+
+    <main class="workspace">
+
+      <!-- TOPBAR -->
+
+      <header class="topbar glass">
+
+        <div class="topbar-left">
+
+          <button class="mobile-menu-btn" id="mobileMenuBtn">
+            <i class="fa-solid fa-bars"></i>
+          </button>
+
+          <div>
+            <span class="eyebrow">Workspace</span>
+            <h1>Learning Dashboard</h1>
+          </div>
+
+        </div>
+
+
+        <div class="topbar-actions">
+
+          <button class="outline-btn" id="openSubjectModal">
+            <i class="fa-solid fa-plus"></i>
+            New Subject
+          </button>
+
+        </div>
+
+      </header>
+
+
+      <!-- HERO -->
+
+      <section class="hero glass">
+
+        <div class="hero-content">
+
+          <span class="eyebrow">Personal Learning Workspace</span>
+
+          <h2>
+            Organize your
+            <span>deep work.</span>
+          </h2>
+
+          <p>
+            Minimal futuristic workspace for focused studying, AI workflows,
+            flashcards, and notes.
+          </p>
+
+          <div class="hero-actions">
+
+            <button class="primary-btn" id="heroCreateBtn">
+              Create Subject
+            </button>
+
+            <button class="secondary-btn" id="focusModeBtn">
+              Focus Mode
+            </button>
+
+          </div>
+
+        </div>
+
+
+        <div class="hero-card glass">
+          <span>Today</span>
+          <h3>Start a focused study session</h3>
+        </div>
+
+      </section>
+      
+
+      <!-- SUBJECTS -->
+
+      <section class="subjects-section">
+
+        <div class="section-header">
+
+          <div>
+            <span class="eyebrow">Subjects</span>
+            <h2>Your Workspace</h2>
+          </div>
+
+        </div>
+
+
+        <div class="empty-state glass" id="emptyState">
+
+          <div class="empty-icon">
+            <i class="fa-solid fa-sparkles"></i>
+          </div>
+
+          <h3>No subjects yet</h3>
+
+          <p>
+            Create your first subject and start building your personal AI learning workspace.
+          </p>
+
+          <button class="primary-btn" id="emptyCreateBtn">
+            Create First Subject
+          </button>
+
+        </div>
+
+
+        <div class="subject-grid" id="subjectGrid"></div>
+
+      </section>
+
+
+      <!-- WORKSPACE VIEW -->
+
+     <section class="workspace-view hidden" id="workspaceView">
+
+  <!-- TOP -->
+
+  <div class="workspace-top glass">
+
+    <div>
+      <span class="eyebrow">Subject Workspace</span>
+      <h2 id="workspaceTitle"></h2>
+    </div>
+
+    <button
+      class="outline-btn"
+      id="backToDashboard"
+    >
+      Back
+    </button>
+
+  </div>
+
+
+  <!-- OVERVIEW -->
+
+  <div class="subject-overview">
+
+    <div class="overview-card glass">
+
+      <span>Total Notes</span>
+
+      <h3 id="notesCount">0</h3>
+
+    </div>
+
+
+    <div class="overview-card glass">
+
+      <span>Tasks</span>
+
+      <h3 id="tasksCount">0</h3>
+
+    </div>
+
+
+    <div class="overview-card glass">
+
+      <span>Completed</span>
+
+      <h3 id="completedTasks">0</h3>
+
+    </div>
+
+
+    <div class="overview-card glass">
+
+      <span>Progress</span>
+
+      <h3 id="progressPercent">0%</h3>
+
+    </div>
+
+  </div>
+
+
+  <!-- TABS -->
+
+  <div class="workspace-tabs">
+
+    <button
+      class="tab-btn active"
+      data-tab="notes"
+    >
+      Notes
+    </button>
+
+    <button
+      class="tab-btn"
+      data-tab="tasks"
+    >
+      Tasks
+    </button>
+
+    <button
+      class="tab-btn"
+      data-tab="flashcards"
+    >
+      Flashcards
+    </button>
+
+    <button
+      class="tab-btn"
+      data-tab="ai"
+    >
+      AI Tutor
+    </button>
+
+  </div>
+
+
+  <!-- CONTENT -->
+
+  <div class="workspace-content glass">
+
+
+    <!-- NOTES -->
+
+    <div
+      class="tab-content active"
+      id="notesTab"
+    >
+
+      <div class="notes-container">
+
+        <div class="notes-header">
+
+          <div>
+
+            <h3>Notes</h3>
+
+            <span>Auto-saved</span>
+
+          </div>
+
+          <button
+  class="notes-menu-btn"
+  id="notesMenuBtn"
+                  >
+
+            <i class="fa-solid fa-ellipsis"></i>
+
+          </button>
+
+        </div>
+
+
+        <div class="notes-toolbar">
+
+  <button id="boldBtn">
+    <i class="fa-solid fa-bold"></i>
+  </button>
+
+  <button id="italicBtn">
+    <i class="fa-solid fa-italic"></i>
+  </button>
+
+  <button id="h1Btn">
+    H1
+  </button>
+
+  <button id="listBtn">
+    <i class="fa-solid fa-list"></i>
+  </button>
+
+  <button id="linkBtn">
+    <i class="fa-solid fa-link"></i>
+  </button>
+
+</div>
+
+<div
+  class="notes-dropdown hidden"
+  id="notesDropdown"
+>
+
+  <button id="clearNotesBtn">
+    Clear Notes
+  </button>
+
+  <button id="copyNotesBtn">
+    Copy Notes
+  </button>
+
+  <button id="downloadNotesBtn">
+    Download Notes
+  </button>
+
+</div>
+        <div
+  class="notes-editor"
+  id="notesEditor"
+  contenteditable="true"
+></div>
+
+        <div class="notes-footer">
+
+          <span id="wordCount">
+            0 words
+          </span>
+
+          <span>
+            Last edited just now
+          </span>
+
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <!-- TASKS -->
+
+    <div
+      class="tab-content"
+      id="tasksTab"
+    >
+
+      <div class="task-top">
+
+        <input
+          type="text"
+          id="taskInput"
+          placeholder="Add a task..."
+        >
+
+        <button
+          id="addTaskBtn"
+          class="primary-btn"
+        >
+          Add
+        </button>
+
+      </div>
+
+      <div
+        class="task-list"
+        id="taskList"
+      ></div>
+
+    </div>
+
+
+    <!-- FLASHCARDS -->
+
+   <div
+  class="tab-content"
+  id="flashcardsTab"
+>
+<button
+  class="primary-btn"
+  id="generateFlashcardsBtn"
+>
+  Generate AI Flashcards
+</button>
+  <div class="flashcard-top">
+
+    <input
+      type="text"
+      id="flashQuestion"
+      placeholder="Question"
+    >
+
+    <input
+      type="text"
+      id="flashAnswer"
+      placeholder="Answer"
+    >
+
+    <button
+      class="primary-btn"
+      id="addFlashcardBtn"
+    >
+      Add
+    </button>
+
+  </div>
+
+
+  <div
+    class="flashcard-grid"
+    id="flashcardGrid"
+  ></div>
+
+</div>
+
+
+
+    <!-- AI -->
+
+    <div
+      class="tab-content"
+      id="aiTab"
+    >
+
+      <div class="placeholder-card">
+
+        AI Tutor coming soon
+
+      </div>
+
+    </div>
+
+  </div>
+
+</section>
+<section
+  class="page-section hidden"
+  id="flashcardsPage"
+>
+
+  <div class="section-heading">
+
+    <h2>All Flashcards</h2>
+
+    <p>
+      Review flashcards across subjects
+    </p>
+
+  </div>
+
+  <div
+    class="flashcard-grid"
+    id="allFlashcardsGrid"
+  ></div>
+
+</section>
+<section
+  class="page-section hidden"
+  id="analyticsPage"
+>
+
+  <div class="section-heading">
+
+    <h2>Analytics</h2>
+
+    <p>
+      Your learning statistics
+    </p>
+
+  </div>
+
+
+  <div class="analytics-grid">
+
+    <div class="overview-card glass">
+
+      <span>Total Subjects</span>
+
+      <h3 id="analyticsSubjects">
+        0
+      </h3>
+
+    </div>
+
+
+    <div class="overview-card glass">
+
+      <span>Total Tasks</span>
+
+      <h3 id="analyticsTasks">
+        0
+      </h3>
+
+    </div>
+
+
+    <div class="overview-card glass">
+
+      <span>Total Flashcards</span>
+
+      <h3 id="analyticsFlashcards">
+        0
+      </h3>
+
+    </div>
+
+
+    <div class="overview-card glass">
+
+      <span>Total Notes Words</span>
+
+      <h3 id="analyticsWords">
+        0
+      </h3>
+
+    </div>
+
+  </div>
+
+</section>
+<section
+  class="page-section hidden"
+  id="settingsPage">
+
+  <div class="section-heading">
+
+  <h2>Settings</h2>
+
+  <p>
+    Customize your workspace
+  </p>
+
+</div>
+
+
+<div class="settings-grid">
+
+
+  <!-- THEME -->
+
+ <div
+  class="glass settings-card"
+  id="appearanceCard"
+>
+
+    <div class="settings-top">
+
+      <div>
+
+        <h3>Appearance</h3>
+
+        <p>
+          Switch between dark
+          and light mode
+        </p>
+
+      </div>
+
+      <i class="fa-solid fa-moon"></i>
+
+    </div>
+
+  </div>
+
+
+  <!-- AI -->
+
+  <div class="glass settings-card"id="aiCard">
+
+    <div class="settings-top">
+
+      <div>
+
+        <h3>AI Model</h3>
+
+        <p>
+          Connected to local
+          Gemma AI via Ollama
+        </p>
+
+      </div>
+
+      <i class="fa-solid fa-robot"></i>
+
+    </div>
+
+  </div>
+
+
+  <!-- STORAGE -->
+
+  <div class="glass settings-card"id="storageCard">
+
+    <div class="settings-top">
+
+      <div>
+
+        <h3>Storage</h3>
+
+        <p>
+          Notes and tasks saved
+          locally in browser
+        </p>
+
+      </div>
+
+      <i class="fa-solid fa-database"></i>
+
+    </div>
+
+  </div>
+
+
+  <!-- LANGUAGE -->
+
+  <div class="glass settings-card"id="languageCard">
+
+    <div class="settings-top">
+
+      <div>
+
+        <h3>Languages</h3>
+
+        <p>
+          Multilingual AI support
+          enabled
+        </p>
+
+      </div>
+
+      <i class="fa-solid fa-language"></i>
+
+    </div>
+
+  </div>
+
+</div></section>
+    </main>
+
+
+    <!-- AI PANEL -->
+
+    <aside class="assistant-panel glass">
+
+      <div class="assistant-header">
+
+        <div>
+          <h2>Quorix AI Assistant</h2>
+          <span>Online</span>
+        </div>
+
+        <div class="online-dot"></div>
+
+      </div>
+
+
+      <div class="assistant-body" id="chatBody"></div>
+
+
+      <div class="assistant-actions">
+
+        <button>
+          <i class="fa-solid fa-wand-magic-sparkles"></i>
+          Generate Quiz
+        </button>
+
+        <button>
+          <i class="fa-solid fa-file-lines"></i>
+          Summarize Notes
+        </button>
+
+        <button>
+          <i class="fa-solid fa-brain"></i>
+          Focus Mode
+        </button>
+
+      </div>
+
+
+      <form class="assistant-input" id="chatForm">
+
+        <input
+          type="text"
+          id="chatInput"
+          placeholder="Ask Quorix AI..."
+        />
+
+        <button type="submit">
+          <i class="fa-solid fa-arrow-right"></i>
+        </button>
+
+      </form>
+
+    </aside>
+
+  </div>
+
+
+  <!-- MODAL -->
+
+  <div class="modal hidden" id="subjectModal">
+
+    <div class="modal-card glass">
+
+      <div class="modal-header">
+
+        <div>
+          <span class="eyebrow">Workspace</span>
+          <h2>Create Subject</h2>
+        </div>
+
+        <button id="closeModalBtn">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+
+      </div>
+
+
+      <form id="subjectForm">
+
+  <div class="input-group">
+
+    <label>Subject Name</label>
+
+    <input
+      type="text"
+      id="subjectName"
+      placeholder="Enter subject name"
+      autocomplete="off"
+    />
+
+  </div>
+
+
+  <div class="input-group">
+
+    <label>Description</label>
+
+    <textarea
+      id="subjectDescription"
+      placeholder="Short workspace description"
+    ></textarea>
+
+  </div>
+
+
+  <button
+    class="primary-btn full-width"
+    type="submit"
+  >
+    Create Subject
+  </button>
+
+</form>
+
+    </div>
+
+  </div>
+
+
+  <script src="script.js"></script>
+</body>
+</html>
