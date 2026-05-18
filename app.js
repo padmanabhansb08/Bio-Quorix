@@ -53,13 +53,13 @@ app.use(helmet({
     contentSecurityPolicy: {
         directives: {
             defaultSrc: ["'self'"],
-            scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://cdn.jsdelivr.net", "https://unpkg.com"],
+            scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://cdn.jsdelivr.net", "https://unpkg.com", "https://*.googleapis.com", "https://*.tensorflow.org"],
             scriptSrcAttr: ["'unsafe-inline'"],   // Allow onclick/onchange/etc. inline handlers
             styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://cdn.jsdelivr.net"],
             fontSrc: ["'self'", "https://fonts.gstatic.com", "data:"],
             imgSrc: ["'self'", "data:", "https:", "http:"],
-            connectSrc: ["'self'", "https://api.groq.com", "https://api.resend.com"],
-            workerSrc: ["'self'", "blob:"],
+            connectSrc: ["'self'", "https://api.groq.com", "https://api.resend.com", "https://*.googleapis.com", "https://*.tensorflow.org", "https://storage.googleapis.com"],
+            workerSrc: ["'self'", "blob:", "https://cdn.jsdelivr.net"],
             frameSrc: ["'none'"],
         }
     }
@@ -442,12 +442,14 @@ const { mountPracticeTestRoutes } = require('./routes/practiceTests');
 const { mountChallengeRoutes } = require('./routes/challenges');
 const { mountAnalyticsRoutes } = require('./routes/analytics');
 const { mountConceptRoutes } = require('./routes/concepts');
+const { mountAttentionRoutes } = require('./routes/attention');
 
 const aiService = require('./services/aiService');
 mountPracticeTestRoutes(app, db, authenticateToken, aiService);
 mountChallengeRoutes(app, db, authenticateToken, aiService, cron);
 mountAnalyticsRoutes(app, db, authenticateToken);
 mountConceptRoutes(app, db, authenticateToken, aiService);
+mountAttentionRoutes(app, db, authenticateToken);
 
 // --- Offline Sync Endpoint (Phase 5.1) ---
 app.post('/api/sync/offline-reviews', authenticateToken, (req, res) => {

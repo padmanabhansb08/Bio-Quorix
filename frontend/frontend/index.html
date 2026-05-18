@@ -448,6 +448,7 @@
             <li><a href="#" onclick="showDashboardSection('chat')" id="nav-chat"><span class="nav-icon"><i data-lucide="message-square" style="width:18px;height:18px;"></i></span> AI
                 Tutor</a></li>
             <li><a href="#" onclick="showDashboardSection('documents')" id="nav-documents"><span class="nav-icon"><i data-lucide="folder" style="width:18px;height:18px;"></i></span> My Documents</a></li>
+            <li><a href="#" onclick="showDashboardSection('focus')" id="nav-focus"><span class="nav-icon"><i data-lucide="eye" style="width:18px;height:18px;"></i></span> AI Focus Monitor</a></li>
           </ul>
           <div class="sidebar-section-title" style="display:flex; align-items:center; gap:6px;"><i data-lucide="rocket" style="width:14px; height:14px;"></i> Progress</div>
           <ul class="sidebar-nav">
@@ -505,6 +506,238 @@
 
       <!-- Main Content Area -->
       <main class="main-content">
+
+        <!-- AI Focus Monitor Section -->
+        <div id="section-focus" class="dashboard-section hidden">
+          <div class="dashboard-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px;">
+            <div>
+              <h2>🧠 AI Focus Monitor</h2>
+              <p>Real-time neural attention, drowsiness, speech, and phone distraction tracking system for blind tutors.</p>
+            </div>
+            <div style="display:flex; align-items:center; gap:12px;">
+              <span id="liveFocusStatus" class="status-badge success">FACE TRACKING READY</span>
+              <div class="glass-card" style="padding:8px 16px; display:flex; align-items:center; gap:8px; height:auto; margin:0;">
+                <span style="font-size:0.75rem; color:var(--text-muted); font-weight:700; text-transform:uppercase; letter-spacing:0.5px;">Session Clock:</span>
+                <span id="focusSessionTimer" style="font-family:'JetBrains Mono', monospace; font-weight:700; font-size:1.1rem; color:var(--primary-400);">00:00</span>
+              </div>
+            </div>
+          </div>
+
+          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(320px, 1fr)); gap:24px; margin-bottom:24px;">
+            
+            <!-- Left Side: Camera & Controls -->
+            <div class="glass-card" style="padding:20px; display:flex; flex-direction:column; gap:20px; position:relative; overflow:hidden;">
+              <div style="font-size:1.1rem; font-weight:700; color:var(--text-primary); display:flex; align-items:center; gap:8px;">
+                <i data-lucide="camera" style="color:var(--primary-400); width:18px; height:18px;"></i> Video Viewport
+              </div>
+              
+              <!-- Video / Canvas viewport container -->
+              <div style="position:relative; width:100%; aspect-ratio:4/3; background:#0b0f19; border-radius:12px; overflow:hidden; border:2px solid var(--border-color); box-shadow:0 8px 32px rgba(0,0,0,0.3); display:flex; align-items:center; justify-content:center;">
+                <video id="focusVideo" autoplay muted playsinline style="width:100%; height:100%; object-fit:cover; transform:scaleX(-1);"></video>
+                <canvas id="focusOverlay" style="position:absolute; top:0; left:0; width:100%; height:100%; object-fit:cover; transform:scaleX(-1); pointer-events:none;"></canvas>
+                
+                <!-- Not Active Overlay -->
+                <div id="focusActiveOverlay" class="glass-card hidden" style="position:absolute; top:12px; right:12px; padding:6px 12px; display:flex; align-items:center; gap:8px; border-color:rgba(16, 185, 129, 0.4); background:rgba(16, 185, 129, 0.08); backdrop-filter:blur(6px); margin:0;">
+                  <span style="display:block; width:8px; height:8px; border-radius:50%; background:#10b981; animation:pulse 1.5s infinite;"></span>
+                  <span style="font-family:'JetBrains Mono', monospace; font-size:0.75rem; font-weight:700; color:#10b981; text-transform:uppercase;">LIVE STREAMING</span>
+                </div>
+              </div>
+
+              <!-- Main CTA Actions -->
+              <div style="display:flex; gap:12px;">
+                <button id="startFocusBtn" class="btn btn-primary ripple-btn hover-elevate" onclick="FocusMonitor.startSession()" style="flex:1; padding:14px 20px; font-weight:700; font-size:0.95rem; border-radius:10px; display:flex; align-items:center; justify-content:center; gap:8px;">
+                  <i data-lucide="play" style="width:16px; height:16px;"></i> START ATTENTION TRACKING
+                </button>
+                <button id="stopFocusBtn" class="btn btn-danger ripple-btn hover-elevate hidden" onclick="FocusMonitor.stopSession()" style="flex:1; padding:14px 20px; font-weight:700; font-size:0.95rem; border-radius:10px; display:flex; align-items:center; justify-content:center; gap:8px;">
+                  <i data-lucide="square" style="width:16px; height:16px;"></i> STOP ATTENTION TRACKING
+                </button>
+              </div>
+
+              <!-- Alerts configuration switches -->
+              <div style="padding-top:16px; border-top:1px solid var(--border-color); display:flex; flex-direction:column; gap:12px;">
+                <div style="font-size:0.85rem; font-weight:700; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.5px;">Alert Notification Modalities</div>
+                
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                  <div style="display:flex; flex-direction:column;">
+                    <span style="font-size:0.9rem; font-weight:600; color:var(--text-primary);">Voice synthesis (Blind tutors)</span>
+                    <span style="font-size:0.75rem; color:var(--text-muted);">Speaks warnings out loud when distractions trigger</span>
+                  </div>
+                  <label class="switch" style="position:relative; display:inline-block; width:44px; height:24px;">
+                    <input type="checkbox" id="focusVoiceSwitch" checked onchange="FocusMonitor.settings.voiceAlertsEnabled = this.checked" style="opacity:0; width:0; height:0;">
+                    <span class="slider round" style="position:absolute; cursor:pointer; top:0; left:0; right:0; bottom:0; background-color:rgba(255,255,255,0.1); transition:0.3s; border-radius:34px;"></span>
+                  </label>
+                </div>
+
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                  <div style="display:flex; flex-direction:column;">
+                    <span style="font-size:0.9rem; font-weight:600; color:var(--text-primary);">Audio Beep Warnings</span>
+                    <span style="font-size:0.75rem; color:var(--text-muted);">Plays immediate high frequency synthesized warning tones</span>
+                  </div>
+                  <label class="switch" style="position:relative; display:inline-block; width:44px; height:24px;">
+                    <input type="checkbox" id="focusSoundSwitch" checked onchange="FocusMonitor.settings.soundAlertsEnabled = this.checked" style="opacity:0; width:0; height:0;">
+                    <span class="slider round" style="position:absolute; cursor:pointer; top:0; left:0; right:0; bottom:0; background-color:rgba(255,255,255,0.1); transition:0.3s; border-radius:34px;"></span>
+                  </label>
+                </div>
+              </div>
+
+              <!-- Threshold Calibrations -->
+              <div style="padding-top:16px; border-top:1px solid var(--border-color); display:flex; flex-direction:column; gap:14px;">
+                <div style="font-size:0.85rem; font-weight:700; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.5px;">Calibrate AI Detection Thresholds</div>
+                
+                <div>
+                  <div style="display:flex; justify-content:space-between; font-size:0.8rem; margin-bottom:6px;">
+                    <span style="font-weight:600; color:var(--text-primary);">Eye Aspect Ratio (EAR) Threshold</span>
+                    <span id="labelEarThresh" style="font-family:'JetBrains Mono', monospace; color:var(--primary-400);">0.32</span>
+                  </div>
+                  <input type="range" class="form-range" min="0.15" max="0.35" step="0.01" value="0.32" oninput="FocusMonitor.settings.earThreshold = parseFloat(this.value); document.getElementById('labelEarThresh').textContent=this.value;" style="width:100%; accent-color:var(--primary-500);">
+                </div>
+
+                <div>
+                  <div style="display:flex; justify-content:space-between; font-size:0.8rem; margin-bottom:6px;">
+                    <span style="font-weight:600; color:var(--text-primary);">Mouth Aspect Ratio (MAR) Threshold</span>
+                    <span id="labelMarThresh" style="font-family:'JetBrains Mono', monospace; color:var(--primary-400);">0.15</span>
+                  </div>
+                  <input type="range" class="form-range" min="0.08" max="0.25" step="0.01" value="0.15" oninput="FocusMonitor.settings.marThreshold = parseFloat(this.value); document.getElementById('labelMarThresh').textContent=this.value;" style="width:100%; accent-color:var(--primary-500);">
+                </div>
+              </div>
+
+            </div>
+
+            <!-- Right Side: Real-time Telemetry Stats & Timelines -->
+            <div style="display:flex; flex-direction:column; gap:24px;">
+              
+              <!-- Circular atten score + Telemetry bars -->
+              <div class="glass-card" style="padding:20px; display:grid; grid-template-columns:130px 1fr; gap:20px; align-items:center;">
+                
+                <!-- Mastery Attentiveness circle -->
+                <div style="position:relative; width:120px; height:120px; display:flex; align-items:center; justify-content:center;">
+                  <svg width="120" height="120" viewBox="0 0 120 120" style="transform:rotate(-90deg);">
+                    <circle cx="60" cy="60" r="50" fill="none" stroke="rgba(255,255,255,0.03)" stroke-width="8"></circle>
+                    <circle id="liveAttentivenessScore" cx="60" cy="60" r="50" fill="none" stroke="url(#focusGlowGrad)" stroke-width="8" stroke-dasharray="314" stroke-dashoffset="0" stroke-linecap="round" style="transition:stroke-dashoffset 0.5s ease-out; filter:drop-shadow(0px 0px 8px var(--primary-500));"></circle>
+                    <defs>
+                      <linearGradient id="focusGlowGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#10b981"></stop>
+                        <stop offset="100%" stop-color="#3b82f6"></stop>
+                      </linearGradient>
+                    </defs>
+                  </svg>
+                  <div style="position:absolute; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;">
+                    <span id="liveAttentivenessLabel" style="font-size:1.6rem; font-weight:800; font-family:'Plus Jakarta Sans', sans-serif; color:var(--text-primary);">100%</span>
+                    <span style="font-size:0.65rem; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-muted); font-weight:700;">ATTENTIVE</span>
+                  </div>
+                </div>
+
+                <!-- Live Gauges metrics -->
+                <div style="display:flex; flex-direction:column; gap:12px;">
+                  <div style="font-size:0.85rem; font-weight:700; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.5px;">Real-Time Diagnostics Feed</div>
+                  
+                  <!-- Eye Aperture Gauge -->
+                  <div>
+                    <div style="display:flex; justify-content:space-between; font-size:0.75rem; color:var(--text-muted); margin-bottom:4px;">
+                      <span>Eye Closure Rate (EAR)</span>
+                      <span id="liveEarVal" style="font-family:'JetBrains Mono', monospace; font-weight:700; color:var(--text-primary);">0.30</span>
+                    </div>
+                    <div style="width:100%; height:6px; background:rgba(255,255,255,0.05); border-radius:4px; overflow:hidden; border:1px solid rgba(255,255,255,0.03);">
+                      <div id="liveEarGauge" style="height:100%; width:75%; background:var(--gradient-primary); border-radius:4px; transition:width 0.2s;"></div>
+                    </div>
+                  </div>
+
+                  <!-- Mouth Aperture Gauge -->
+                  <div>
+                    <div style="display:flex; justify-content:space-between; font-size:0.75rem; color:var(--text-muted); margin-bottom:4px;">
+                      <span>Speaking Aperture (MAR)</span>
+                      <span id="liveMarVal" style="font-family:'JetBrains Mono', monospace; font-weight:700; color:var(--text-primary);">0.05</span>
+                    </div>
+                    <div style="width:100%; height:6px; background:rgba(255,255,255,0.05); border-radius:4px; overflow:hidden; border:1px solid rgba(255,255,255,0.03);">
+                      <div id="liveMarGauge" style="height:100%; width:15%; background:#3b82f6; border-radius:4px; transition:width 0.2s;"></div>
+                    </div>
+                  </div>
+
+                  <!-- Yaw Gaze Gauge -->
+                  <div>
+                    <div style="display:flex; justify-content:space-between; font-size:0.75rem; color:var(--text-muted); margin-bottom:4px;">
+                      <span>Screen Alignment Gaze</span>
+                      <span id="liveGazeVal" style="font-family:'JetBrains Mono', monospace; font-weight:700; color:var(--text-primary);">0°</span>
+                    </div>
+                    <div style="width:100%; height:6px; background:rgba(255,255,255,0.05); border-radius:4px; overflow:hidden; border:1px solid rgba(255,255,255,0.03);">
+                      <div id="liveGazeGauge" style="height:100%; width:50%; background:#f59e0b; border-radius:4px; transition:width 0.2s;"></div>
+                    </div>
+                  </div>
+
+                </div>
+
+              </div>
+
+              <!-- Real-time timeline list -->
+              <div class="glass-card" style="padding:20px; display:flex; flex-direction:column; gap:16px; flex-grow:1; max-height:280px; overflow-y:auto;">
+                <div style="font-size:0.9rem; font-weight:700; color:var(--text-primary); display:flex; align-items:center; gap:8px; justify-content:space-between;">
+                  <span style="display:flex; align-items:center; gap:8px;"><i data-lucide="activity" style="color:var(--primary-400); width:16px; height:16px;"></i> Event Audio Timeline</span>
+                  <span style="font-family:'JetBrains Mono', monospace; font-size:0.7rem; color:var(--text-muted);">SECURE TUNNEL</span>
+                </div>
+                
+                <div id="focusLogTimeline" style="display:flex; flex-direction:column; gap:2px; height:100%; overflow-y:auto; border-radius:8px; background:rgba(0,0,0,0.15); border:1px solid var(--border-color);">
+                  <div class="empty-state" style="padding:32px; display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%;">
+                    <div style="font-size:1.5rem; margin-bottom:8px; opacity:0.6;">⏳</div>
+                    <h5 style="margin:0; opacity:0.8;">Timeline Ready</h5>
+                    <p style="font-size:0.75rem; text-align:center; margin:4px 0 0; color:var(--text-muted);">Start session tracking to audit real-time warning logs.</p>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+
+          <!-- Bottom: Past completed focus sessions & analytics curves -->
+          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(320px, 1fr)); gap:24px;">
+            
+            <!-- Past completed sessions list -->
+            <div class="glass-card" style="padding:20px; display:flex; flex-direction:column; gap:16px;">
+              <div style="font-size:0.95rem; font-weight:700; color:var(--text-primary); display:flex; align-items:center; gap:8px;">
+                <i data-lucide="history" style="color:var(--primary-400); width:18px; height:18px;"></i> Recent Focus Sessions
+              </div>
+
+              <!-- List holder -->
+              <div id="focusSessionsList" style="display:flex; flex-direction:column; gap:10px; max-height:300px; overflow-y:auto;">
+                <div style="display:flex; align-items:center; justify-content:center; padding:32px; opacity:0.6;">
+                  <div class="spinner" style="width:20px; height:20px; border-width:2px; border-top-color:var(--primary-500);"></div>
+                  <span style="font-size:0.85rem; margin-left:12px; color:var(--text-muted);">Loading focus log database...</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Historical Analytics charts -->
+            <div class="glass-card" style="padding:20px; display:flex; flex-direction:column; gap:16px;">
+              <div style="font-size:0.95rem; font-weight:700; color:var(--text-primary); display:flex; align-items:center; gap:8px; justify-content:space-between;">
+                <span style="display:flex; align-items:center; gap:8px;"><i data-lucide="trending-up" style="color:var(--primary-400); width:18px; height:18px;"></i> Historical Focus Analytics</span>
+                <span class="badge green">Master Analytics</span>
+              </div>
+
+              <!-- Averages HUD -->
+              <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:12px; margin-bottom:10px;">
+                <div class="glass-card" style="padding:10px; text-align:center; background:rgba(0,0,0,0.15); margin:0;">
+                  <div id="analyticsAvgFocus" style="font-size:1.25rem; font-weight:700; color:var(--primary-400);">100%</div>
+                  <div style="font-size:0.7rem; color:var(--text-muted); font-weight:600; text-transform:uppercase;">Avg Focus</div>
+                </div>
+                <div class="glass-card" style="padding:10px; text-align:center; background:rgba(0,0,0,0.15); margin:0;">
+                  <div id="analyticsTotalTime" style="font-size:1.25rem; font-weight:700; color:#3b82f6;">0m</div>
+                  <div style="font-size:0.7rem; color:var(--text-muted); font-weight:600; text-transform:uppercase;">Total Time</div>
+                </div>
+                <div class="glass-card" style="padding:10px; text-align:center; background:rgba(0,0,0,0.15); margin:0;">
+                  <div id="analyticsTotalAlerts" style="font-size:1.25rem; font-weight:700; color:#ef4444;">0</div>
+                  <div style="font-size:0.7rem; color:var(--text-muted); font-weight:600; text-transform:uppercase;">Alerts Triggered</div>
+                </div>
+              </div>
+
+              <!-- Analytics chart -->
+              <div style="position:relative; width:100%; height:180px;">
+                <canvas id="chartFocusAnalytics"></canvas>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
 
         <!-- Documents Section -->
         <div id="section-documents" class="dashboard-section hidden">
@@ -1179,8 +1412,15 @@
 
   <!-- Confetti Animation Library -->
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <!-- Chart.js for Analytics -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <!-- Face API for Emotion Detection -->
-  <script defer src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.12/dist/face-api.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.12/dist/face-api.js"></script>
+  <!-- TensorFlow.js & Object Detection for Phone Tracking -->
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.10.0/dist/tf.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd@2.2.3/dist/coco-ssd.min.js"></script>
+  <!-- AI Attention Monitor Engine -->
+  <script src="/modules/focusMonitor.js"></script>
   <script src="js/data.js"></script>
   <script src="/js/app.js"></script>
   <!-- Document Chat module — plain script, auto-inits DC on window -->

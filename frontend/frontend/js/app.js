@@ -812,11 +812,32 @@ function showDashboardSection(section) {
     if (section === 'notes') updateNotesContext();
     if (section === 'leaderboard') renderLeaderboard();
     if (section === 'profile') loadProfileData();
+    if (section === 'focus') {
+        if (window.FocusMonitor) {
+            const statusEl = document.getElementById('liveFocusStatus');
+            window.FocusMonitor.init(
+                document.getElementById('focusVideo'),
+                document.getElementById('focusOverlay'),
+                status => {
+                    if (statusEl) statusEl.textContent = status.toUpperCase();
+                }
+            ).then(() => {
+                window.loadFocusSessionsList();
+                window.loadFocusAnalytics();
+            });
+        }
+    }
 
     if (section === 'chat') {
         if (typeof initFaceRecognition === 'function') initFaceRecognition();
     } else {
         if (typeof stopFaceRecognition === 'function') stopFaceRecognition();
+    }
+
+    if (section !== 'focus') {
+        if (window.FocusMonitor && window.FocusMonitor.state.active) {
+            window.FocusMonitor.stopSession();
+        }
     }
 }
 
@@ -2304,6 +2325,192 @@ function renderLearningPath() {
     `;
     }).join('');
 }
+
+// ===== FOCUS MONITOR SERVICE =====
+async function loadFocusSessionsList() {
+    const listEl = document.getElementById('focusSessionsList');
+    if (!listEl) return;
+
+    try {
+        const token = localStorage.getItem('bionexus_token');
+        if (!token) {
+            listEl.innerHTML = '<div style="padding:20px; text-align:center; color:var(--text-muted);">Log in to view focus history.</div>';
+            return;
+        }
+
+        const response = await fetch('/api/attention/sessions', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await response.json();
+        
+        if (!response.ok || !data.success) {
+            listEl.innerHTML = '<div style="padding:20px; text-align:center; color:var(--text-muted);">Failed to load history database.</div>';
+            return;
+        }
+
+        const sessions = data.sessions || [];
+        if (sessions.length === 0) {
+            listEl.innerHTML = `
+                <div class="empty-state" style="padding:32px; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+                    <div style="font-size:1.5rem; margin-bottom:8px; opacity:0.6;">⏳</div>
+                    <h5 style="margin:0; opacity:0.8; color:var(--text-primary);">No Sessions Logged</h5>
+                    <p style="font-size:0.75rem; text-align:center; margin:4px 0 0; color:var(--text-muted);">Start your first attention tracking session above to view details.</p>
+                </div>
+            `;
+            return;
+        }
+
+        listEl.innerHTML = sessions.map(s => {
+            const date = new Date(s.start_time).toLocaleDateString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+            const durationMins = Math.round(s.duration_seconds / 60) || 1;
+            const score = s.avg_attentiveness;
+            let scoreClass = '';
+            if (score < 50) scoreClass = 'color: #ef4444;';
+            else if (score < 80) scoreClass = 'color: #f59e0b;';
+            else scoreClass = 'color: #10b981;';
+
+            const totalAlerts = s.drowsy_count + s.distraction_count + s.phone_count + s.absence_count;
+
+            return `
+                <div class="glass-card hover-elevate" style="margin:0; padding:12px 16px; display:flex; align-items:center; justify-content:space-between; gap:16px; background:rgba(255,255,255,0.03);">
+                    <div style="display:flex; flex-direction:column; gap:4px;">
+                        <span style="font-size:0.85rem; font-weight:600; color:var(--text-primary);">${date}</span>
+                        <span style="font-size:0.75rem; color:var(--text-muted);">${durationMins} min session • ${totalAlerts} warning alerts</span>
+                    </div>
+                    <div style="text-align:right;">
+                        <div style="font-size:1.1rem; font-weight:800; ${scoreClass}">${score}%</div>
+                        <div style="font-size:0.65rem; text-transform:uppercase; color:var(--text-muted); font-weight:700;">Attentive</div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    } catch (err) {
+        console.error("loadFocusSessionsList error:", err);
+        listEl.innerHTML = '<div style="padding:20px; text-align:center; color:var(--text-muted);">Failed to connect to SQLite telemetry node.</div>';
+    }
+}
+
+async function loadFocusAnalytics() {
+    const avgFocusEl = document.getElementById('analyticsAvgFocus');
+    const totalTimeEl = document.getElementById('analyticsTotalTime');
+    const totalAlertsEl = document.getElementById('analyticsTotalAlerts');
+    const chartCanvas = document.getElementById('chartFocusAnalytics');
+
+    if (!avgFocusEl || !totalTimeEl || !totalAlertsEl || !chartCanvas) return;
+
+    try {
+        const token = localStorage.getItem('bionexus_token');
+        if (!token) return;
+
+        const response = await fetch('/api/attention/analytics', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await response.json();
+
+        if (!response.ok || !data.success) return;
+
+        const summary = data.summary || {
+            total_sessions: 0,
+            total_duration_seconds: 0,
+            avg_attentiveness: 100,
+            total_drowsy: 0,
+            total_distraction: 0,
+            total_phone: 0,
+            total_absence: 0
+        };
+
+        const totalMins = Math.round(summary.total_duration_seconds / 60);
+        const totalAlerts = summary.total_drowsy + summary.total_distraction + summary.total_phone + summary.total_absence;
+
+        avgFocusEl.textContent = `${Math.round(summary.avg_attentiveness || 100)}%`;
+        totalTimeEl.textContent = `${totalMins}m`;
+        totalAlertsEl.textContent = totalAlerts;
+
+        // Render trend curve
+        const trend = data.trend || [];
+        
+        // Destroy existing chart to avoid reuse conflicts
+        if (window.focusAnalyticsChart) {
+            window.focusAnalyticsChart.destroy();
+            window.focusAnalyticsChart = null;
+        }
+
+        const labels = trend.map((_, i) => `Sess ${i + 1}`);
+        const focusData = trend.map(t => t.avg_attentiveness);
+        const alertData = trend.map(t => t.drowsy_count + t.distraction_count + t.phone_count + t.absence_count);
+
+        window.focusAnalyticsChart = new Chart(chartCanvas, {
+            type: 'line',
+            data: {
+                labels: labels.length ? labels : ['Ready'],
+                datasets: [
+                    {
+                        label: 'Attentiveness %',
+                        data: focusData.length ? focusData : [100],
+                        borderColor: '#10b981',
+                        backgroundColor: 'rgba(16, 185, 129, 0.05)',
+                        borderWidth: 2,
+                        tension: 0.4,
+                        fill: true,
+                        yAxisID: 'y'
+                    },
+                    {
+                        label: 'Alerts',
+                        data: alertData.length ? alertData : [0],
+                        borderColor: '#ef4444',
+                        backgroundColor: 'transparent',
+                        borderWidth: 2,
+                        tension: 0.4,
+                        fill: false,
+                        yAxisID: 'y1'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top',
+                        labels: { color: '#94a3b8', boxWidth: 12, font: { size: 10 } }
+                    }
+                },
+                scales: {
+                    y: {
+                        type: 'linear',
+                        display: true,
+                        position: 'left',
+                        min: 0,
+                        max: 100,
+                        ticks: { color: '#64748b', font: { size: 9 } },
+                        grid: { color: 'rgba(55, 65, 81, 0.15)' }
+                    },
+                    y1: {
+                        type: 'linear',
+                        display: true,
+                        position: 'right',
+                        min: 0,
+                        suggestedMax: 5,
+                        ticks: { color: '#ef4444', stepSize: 1, font: { size: 9 } },
+                        grid: { drawOnChartArea: false }
+                    },
+                    x: {
+                        ticks: { color: '#64748b', font: { size: 9 } },
+                        grid: { color: 'rgba(55, 65, 81, 0.15)' }
+                    }
+                }
+            }
+        });
+
+    } catch (err) {
+        console.error("loadFocusAnalytics error:", err);
+    }
+}
+
+// Make them globally available
+window.loadFocusSessionsList = loadFocusSessionsList;
+window.loadFocusAnalytics = loadFocusAnalytics;
 
 // ===== ANALYTICS =====
 function renderAnalytics() {
