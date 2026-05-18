@@ -408,10 +408,16 @@ const aiLimiter = rateLimit({
 
 app.post('/api/ai/generate', authenticateToken, aiLimiter, validate(aiGenerateSchema), sanitizePrompt, async (req, res) => {
     const { prompt, subject, topic, difficulty } = req.body;
-    const studyPrompt = `You are Quorix AI, an expert educational tutor.
+    const studyPrompt = `You are Quorix AI, an expert multilingual educational tutor.
 The student is studying: ${subject}
 Topic: ${topic}
 Difficulty level: ${difficulty}
+
+IMPORTANT — MULTILINGUAL RULE:
+- Detect the language the student is writing in.
+- ALWAYS respond in the SAME language the student used in their request.
+- If the student writes in Tamil, respond in Tamil. If in Hindi, respond in Hindi. If in English, respond in English. And so on.
+- Never switch languages unless the student asks you to.
 
 Explain clearly and step by step.
 Use examples suitable for the selected subject.

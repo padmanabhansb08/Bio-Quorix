@@ -4,11 +4,18 @@ const { moderateResponse } = require('../middleware/promptGuard');
 const fetch = (...args) => import('node-fetch').then(({ default: fetch }) => fetch(...args));
 
 const PROVIDERS = {
+    gemini: {
+        name: 'Gemini',
+        url: 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions',
+        envKey: 'GEMINI_API_KEY',
+        model: () => 'gemma-3-27b-it',
+        timeout: 15000,
+    },
     groq: {
         name: 'Groq',
         url: 'https://api.groq.com/openai/v1/chat/completions',
         envKey: 'GROQ_API_KEY',
-        model: () => process.env.AI_MODEL || 'llama-3.3-70b-versatile',
+        model: () => process.env.AI_MODEL || 'openai/gpt-oss-20b',
         timeout: 8000,
     },
     openai: {
@@ -16,13 +23,6 @@ const PROVIDERS = {
         url: 'https://api.openai.com/v1/chat/completions',
         envKey: 'OPENAI_API_KEY',
         model: () => 'gpt-4o-mini',
-        timeout: 15000,
-    },
-    gemini: {
-        name: 'Gemini',
-        url: 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions',
-        envKey: 'GEMINI_API_KEY',
-        model: () => 'gemini-2.0-flash',
         timeout: 15000,
     }
 };
@@ -90,7 +90,7 @@ async function callProvider(provider, systemPrompt, userPrompt) {
  * @returns {Promise<{ text: string, provider: string }>}
  */
 async function generateCompletion(systemPrompt, userPrompt) {
-    const providerOrder = [PROVIDERS.groq, PROVIDERS.openai, PROVIDERS.gemini];
+    const providerOrder = [PROVIDERS.groq, PROVIDERS.gemini, PROVIDERS.openai];
     const errors = [];
 
     for (const provider of providerOrder) {

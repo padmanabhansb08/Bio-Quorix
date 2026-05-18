@@ -854,7 +854,23 @@ const FACE_AI_STATE = {
 };
 
 async function initFaceRecognition() {
-    if (FACE_AI_STATE.initialized || !window.faceapi) return;
+    // Wait for faceapi to load (CDN uses defer, so it may not be ready immediately)
+    if (!window.faceapi) {
+        let retries = 0;
+        await new Promise((resolve) => {
+            const check = setInterval(() => {
+                retries++;
+                if (window.faceapi) { clearInterval(check); resolve(); }
+                if (retries > 20) { clearInterval(check); resolve(); } // give up after 10s
+            }, 500);
+        });
+    }
+    if (FACE_AI_STATE.initialized || !window.faceapi) {
+        if (!window.faceapi && FACE_AI_STATE.label) {
+            FACE_AI_STATE.label.textContent = 'Face API unavailable';
+        }
+        return;
+    }
     
     FACE_AI_STATE.video = document.getElementById('emotionVideo');
     FACE_AI_STATE.label = document.getElementById('emotionLabel');
@@ -2028,43 +2044,91 @@ const VOICE_STATE = {
 };
 
 function toggleVoiceAssistant() {
+    // Lazy-init synth in case it wasn't ready on page load
+    if (!VOICE_STATE.synth) VOICE_STATE.synth = window.speechSynthesis;
+
     VOICE_STATE.enabled = !VOICE_STATE.enabled;
+
+    const btn = document.getElementById('voiceToggleBtn');
     const icon = document.getElementById('voiceToggleIcon');
+    const label = document.getElementById('voiceToggleLabel');
+    const track = document.getElementById('voiceToggleTrack');
+    const thumb = document.getElementById('voiceToggleThumb');
+
     if (VOICE_STATE.enabled) {
-        icon.textContent = '';
-        showToast('Voice Assistant Enabled', '');
+        // ON state
+        if (icon)  icon.textContent  = '🔊';
+        if (label) label.textContent = 'Voice On';
+        if (track) track.style.background = 'var(--primary-500, #6366f1)';
+        if (thumb) thumb.style.left = '19px';
+        if (btn) {
+            btn.style.borderColor = 'var(--primary-500, #6366f1)';
+            btn.style.color       = 'var(--primary-400, #818cf8)';
+            btn.style.background  = 'rgba(99,102,241,0.12)';
+        }
+        showToast('Voice Assistant ON — AI will read responses aloud', '🔊');
     } else {
-        icon.textContent = '';
+        // OFF state
+        if (icon)  icon.textContent  = '🔇';
+        if (label) label.textContent = 'Voice Off';
+        if (track) track.style.background = '#444';
+        if (thumb) thumb.style.left = '3px';
+        if (btn) {
+            btn.style.borderColor = 'var(--border-color)';
+            btn.style.color       = 'var(--text-muted)';
+            btn.style.background  = 'var(--bg-secondary)';
+        }
         if (VOICE_STATE.synth && VOICE_STATE.synth.speaking) VOICE_STATE.synth.cancel();
-        showToast('Voice Assistant Disabled', '');
+        showToast('Voice Assistant OFF', '🔇');
     }
 }
 
 function speakText(text, force = false) {
     if (!('speechSynthesis' in window)) return;
+    if (!VOICE_STATE.synth) VOICE_STATE.synth = window.speechSynthesis;
     if (!force && (!VOICE_STATE.enabled || !VOICE_STATE.synth)) return;
-    
-    if (window.speechSynthesis.speaking) window.speechSynthesis.cancel();
-    
-    // Aggressively strip everything except alphabets and numbers
-    let cleanText = text
-        .replace(/```[\s\S]*?```/g, ' ')  // Replace code blocks
-        .replace(/<[^>]*>?/gm, ' ')       // Remove HTML tags
-        .replace(/[^a-zA-Z0-9\s]/g, ' ')  // Keep ONLY alphabets, numbers, and whitespace
-        .replace(/\s+/g, ' ')             // Collapse multiple spaces
-        .trim();
-    
-    if (!cleanText) return;
-    
-    const utterance = new SpeechSynthesisUtterance(cleanText);
-    utterance.rate = 1.0;
-    utterance.pitch = 1.0;
-    
-    const voices = window.speechSynthesis.getVoices();
-    const preferredVoice = voices.find(v => v.lang.includes('en') && (v.name.includes('Google') || v.name.includes('Natural') || v.name.includes('Female') || v.name.includes('Samantha')));
-    if (preferredVoice) utterance.voice = preferredVoice;
 
-    window.speechSynthesis.speak(utterance);
+    if (window.speechSynthesis.speaking) window.speechSynthesis.cancel();
+
+    // Strip everything except alphabets (a-z, A-Z) and spaces — as requested
+    let cleanText = text
+        .replace(/```[\s\S]*?```/g, ' ')     // Remove code blocks
+        .replace(/<[^>]*>?/gm, ' ')          // Remove HTML tags
+        .replace(/#{1,6}\s*/g, ' ')          // Remove markdown headings
+        .replace(/[*_~`>|\[\]\(\)]/g, ' ')  // Remove markdown symbols
+        .replace(/https?:\/\/\S+/g, ' ')    // Remove URLs
+        .replace(/[^a-zA-Z ]/g, ' ')         // Keep ONLY English alphabets and spaces
+        .replace(/\s+/g, ' ')               // Collapse multiple spaces
+        .trim();
+
+    if (!cleanText) return;
+
+    // Break into chunks of 200 words to avoid speech synthesis cutoff
+    const words = cleanText.split(' ');
+    const chunks = [];
+    for (let i = 0; i < words.length; i += 200) {
+        chunks.push(words.slice(i, i + 200).join(' '));
+    }
+
+    function speakChunk(index) {
+        if (index >= chunks.length) return;
+        const utterance = new SpeechSynthesisUtterance(chunks[index]);
+        utterance.rate = 0.95;
+        utterance.pitch = 1.0;
+        utterance.volume = 1.0;
+
+        const voices = window.speechSynthesis.getVoices();
+        const preferredVoice = voices.find(v =>
+            v.lang.startsWith('en') &&
+            (v.name.includes('Google') || v.name.includes('Natural') || v.name.includes('Samantha') || v.name.includes('Daniel'))
+        );
+        if (preferredVoice) utterance.voice = preferredVoice;
+
+        utterance.onend = () => speakChunk(index + 1);
+        window.speechSynthesis.speak(utterance);
+    }
+
+    speakChunk(0);
 }
 
 const SPEECH_RECOGNITION_STATE = {

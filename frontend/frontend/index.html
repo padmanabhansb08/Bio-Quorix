@@ -839,14 +839,45 @@
                   <div style="font-size:0.8rem;color:var(--primary-400);">● Online — Ask me anything!</div>
                 </div>
               </div>
-              <div style="display:flex; align-items:center; gap:8px;">
-                <button id="voiceToggleBtn" class="btn btn-ghost btn-sm" onclick="toggleVoiceAssistant()" style="padding:4px 8px; border-radius:8px;" title="Toggle Voice Assistant">
-                  <span id="voiceToggleIcon" style="font-size:1.2rem;">Voice Off</span>
-                </button>
+              <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+
+                <!-- ===== VOICE ASSISTANT TOGGLE ===== -->
+                <div style="display:flex; flex-direction:column; align-items:center; gap:4px;">
+                  <button id="voiceToggleBtn" onclick="toggleVoiceAssistant()" title="Toggle Voice Assistant"
+                    style="
+                      display: flex; align-items: center; gap: 8px;
+                      padding: 8px 16px; border-radius: 24px;
+                      background: var(--bg-secondary);
+                      border: 2px solid var(--border-color);
+                      color: var(--text-muted);
+                      font-size: 0.85rem; font-weight: 600;
+                      cursor: pointer; transition: all 0.3s ease;
+                      white-space: nowrap; min-width: 130px;
+                      justify-content: center;
+                    ">
+                    <span id="voiceToggleIcon" style="font-size:1.1rem;">🔇</span>
+                    <span id="voiceToggleLabel">Voice Off</span>
+                    <!-- Toggle track -->
+                    <span id="voiceToggleTrack" style="
+                      display:inline-flex; width:36px; height:20px;
+                      background:#444; border-radius:10px; position:relative;
+                      transition: background 0.3s; flex-shrink:0;
+                    ">
+                      <span id="voiceToggleThumb" style="
+                        position:absolute; top:3px; left:3px;
+                        width:14px; height:14px; border-radius:50%;
+                        background:#fff; transition: left 0.3s;
+                      "></span>
+                    </span>
+                  </button>
+                </div>
+
+                <!-- Face Camera -->
                 <div style="position:relative; width:80px; height:60px; border-radius:8px; overflow:hidden; border:1px solid var(--border-color); background:#000;">
                   <video id="emotionVideo" autoplay muted playsinline style="object-fit:cover; width:100%; height:100%;"></video>
                   <div id="emotionLabel" style="position:absolute; bottom:0; left:0; width:100%; text-align:center; background:rgba(0,0,0,0.6); color:white; font-size:0.65rem; padding:2px 0; font-weight:bold;">Detecting...</div>
                 </div>
+
                 <span style="font-size:0.75rem; color:var(--text-muted); font-weight:500;">Persona:</span>
                 <select class="form-input"
                   style="padding:4px 8px; font-size:0.8rem; width:auto; height:auto; border-radius:8px; border:1px solid var(--border-color); background:var(--bg-secondary);"
