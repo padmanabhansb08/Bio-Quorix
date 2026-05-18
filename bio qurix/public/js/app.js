@@ -9,8 +9,8 @@ const APP_STATE = {
     currentSection: 'overview',
     currentUser: null,
     theme: localStorage.getItem('bionexus_theme') || 'dark',
-    // Default to Gemma 2 9B (via Ollama). Changeable in UI/localStorage.
-    ollamaModel: localStorage.getItem('bionexus_ollama_model') || 'gemma2:9b',
+    // Default to Gemma 4 26B (via Ollama). Changeable in UI/localStorage.
+    ollamaModel: localStorage.getItem('bionexus_ollama_model') || 'gemma4:26b',
     quizState: {
         currentTopic: null,
         questions: [],
@@ -35,7 +35,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Apply saved theme
     applyTheme(APP_STATE.theme);
 
-    // Persisted model (Gemma 2 9B default)
+    // Persisted model (Gemma 4 26B default)
     const savedModel = localStorage.getItem('bionexus_ollama_model');
     if (savedModel) APP_STATE.ollamaModel = savedModel;
     const modelSelect = document.getElementById('ollamaModelSelect');
@@ -2075,7 +2075,7 @@ function switchUser(email) {
 
 // ===== OLLAMA API =====
 async function callAI(prompt, modelOverride) {
-    const model = modelOverride || APP_STATE.ollamaModel || 'gemma4';
+    const model = modelOverride || APP_STATE.ollamaModel || 'gemma4:26b';
     try {
         // Avoid "infinite loading" when generation stalls.
         const controller = new AbortController();

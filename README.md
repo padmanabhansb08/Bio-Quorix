@@ -34,7 +34,7 @@ Track your "Learning Velocity" with high-end visualizations. Monitor your XP, le
 | **Backend** | Node.js (Express), JWT Auth, Morgan Logging |
 | **Security** | Helmet.js, Express Rate Limit, BcryptJS |
 | **Database** | SQLite (Better-SQLite3) with specialized indexing |
-| **AI/ML** | Groq LPU™ Inference Engine (Llama 3.3 70B) |
+| **AI/ML** | Groq LPU™ Inference Engine (Gemma 4 26B) |
 | **DevOps** | Docker, GitHub Actions, PWA Manifest |
 
 ---

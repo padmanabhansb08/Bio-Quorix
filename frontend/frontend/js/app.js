@@ -9,7 +9,7 @@ const APP_STATE = {
     currentSection: 'overview',
     currentUser: null,
     theme: localStorage.getItem('bionexus_theme') || 'dark',
-    ollamaModel: 'llama3',
+    ollamaModel: 'gemma4:26b',
     quizState: {
         currentTopic: null,
         questions: [],
@@ -1917,7 +1917,7 @@ async function callAI(prompt, studyContext = getSelectedStudyContext()) {
         
 Please ensure:
 1. The backend server is running.
-2. **Ollama** is running on your machine with **llama3** installed.
+2. **Ollama** is running on your machine with **gemma4:26b** installed.
 
 *Error Details: ${err.message}*`;
     }
@@ -3001,7 +3001,7 @@ function switchUser(email) {
 
 // ===== LEGACY DIRECT OLLAMA API =====
 async function callAIDirect(prompt) {
-    const model = 'llama3'; // Hardcoded as per user preference
+    const model = 'gemma4:26b'; // Hardcoded as per user preference
     try {
         const response = await fetch('http://localhost:11434/api/generate', {
             method: 'POST',
@@ -3022,7 +3022,7 @@ async function callAIDirect(prompt) {
         
 Please ensure:
 1. **Ollama** is running on your machine.
-2. The **llama3** model is installed (run \`ollama run llama3\` in your terminal).
+2. The **gemma4:26b** model is installed (run \`ollama run gemma4:26b\` in your terminal).
 3. The server is accessible at \`http://localhost:11434\`.
 
 *Error Details: ${err.message}*`;

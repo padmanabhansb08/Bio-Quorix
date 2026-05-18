@@ -45,7 +45,7 @@ Then open `http://localhost:8000/`.
 
 ## Ollama
 
-For the best experience, run Ollama locally at `http://localhost:11434` and load one of the models exposed in the UI, such as `gemma2:9b`, `gemma4`, `llama3`, or `mistral`.
+For the best experience, run Ollama locally at `http://localhost:11434` and load one of the models exposed in the UI, such as `gemma4:26b`, `llama3`, or `mistral`.
 
 If Ollama is not available, BioQuorix still works with bundled fallback content for several learning flows.
 

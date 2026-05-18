@@ -6,7 +6,7 @@ const envSchema = z.object({
     JWT_SECRET: z.string().min(8, 'JWT_SECRET must be at least 8 characters'),
     PORT: z.coerce.number().default(8000),
     NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
-    AI_MODEL: z.string().default('llama-3.3-70b-versatile'),
+    AI_MODEL: z.string().default('gemma4-26b'),
     RATE_LIMIT_MAX: z.coerce.number().default(100),
     // Optional providers for fallback chain
     OPENAI_API_KEY: z.string().optional(),
