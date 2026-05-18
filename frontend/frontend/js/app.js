@@ -1461,7 +1461,21 @@ function startTopicQuiz() {
 function populateQuizTopics() {
     const user = APP_STATE.currentUser;
     if (!user) return;
-    const topics = getTopicsForCurrentSelection();
+    const context = getSelectedStudyContext();
+    let topics = getTopicsForCurrentSelection();
+    
+    // Only show the currently selected subject to avoid cluttering the quiz section
+    if (context.subject !== 'All Topics') {
+        topics = [topics[0]]; // Just the primary topic for the selected subject
+    } else {
+        // If All Topics is selected, show a generic "All Topics" quiz
+        topics = [{
+            id: 'all-topics-quiz',
+            name: 'All Topics (General)',
+            icon: '🌍',
+            description: 'A comprehensive quiz covering multiple subjects.'
+        }];
+    }
     const grid = document.getElementById('quizTopicGrid');
     if (!grid) return;
 
@@ -1491,7 +1505,15 @@ function calculateDifficulty(score) {
 
 async function startQuiz(topicId) {
     const user = APP_STATE.currentUser;
-    const topic = findCurrentTopic(topicId);
+    let topic = findCurrentTopic(topicId);
+    if (!topic && topicId === 'all-topics-quiz') {
+        topic = {
+            id: 'all-topics-quiz',
+            name: 'All Topics (General)',
+            icon: '🌍',
+            description: 'A comprehensive quiz covering multiple subjects.'
+        };
+    }
     if (!topic) return;
     const studyContext = {
         ...getSelectedStudyContext(),
